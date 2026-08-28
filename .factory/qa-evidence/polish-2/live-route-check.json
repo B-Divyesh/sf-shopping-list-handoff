@@ -1,0 +1,126 @@
+[
+  {
+    "path": "/",
+    "status": 200,
+    "title": "Shopping List Handoff — Clear shopping lists",
+    "expectedTitle": "Shopping List Handoff — Clear shopping lists",
+    "description": "Turn pasted ingredients into a clear handoff card another shopper can use.",
+    "expectedDescription": "Turn pasted ingredients into a clear handoff card another shopper can use.",
+    "metadata": {
+      "description": "Turn pasted ingredients into a clear handoff card another shopper can use.",
+      "og:title": "Shopping List Handoff — Clear shopping lists",
+      "og:description": "Turn pasted ingredients into a clear handoff card another shopper can use.",
+      "twitter:title": "Shopping List Handoff — Clear shopping lists",
+      "twitter:description": "Turn pasted ingredients into a clear handoff card another shopper can use."
+    },
+    "h1": 1,
+    "main": 1,
+    "errors": [],
+    "serious": []
+  },
+  {
+    "path": "/demo",
+    "status": 200,
+    "title": "Demo — Shopping List Handoff",
+    "expectedTitle": "Demo — Shopping List Handoff",
+    "description": "Try a ready handoff card with sample pasta-night ingredients.",
+    "expectedDescription": "Try a ready handoff card with sample pasta-night ingredients.",
+    "metadata": {
+      "description": "Try a ready handoff card with sample pasta-night ingredients.",
+      "og:title": "Demo — Shopping List Handoff",
+      "og:description": "Try a ready handoff card with sample pasta-night ingredients.",
+      "twitter:title": "Demo — Shopping List Handoff",
+      "twitter:description": "Try a ready handoff card with sample pasta-night ingredients."
+    },
+    "h1": 1,
+    "main": 1,
+    "errors": [],
+    "serious": []
+  },
+  {
+    "path": "/privacy",
+    "status": 200,
+    "title": "Privacy — Shopping List Handoff",
+    "expectedTitle": "Privacy — Shopping List Handoff",
+    "description": "Read how Shopping List Handoff keeps ingredient lists in this browser.",
+    "expectedDescription": "Read how Shopping List Handoff keeps ingredient lists in this browser.",
+    "metadata": {
+      "description": "Read how Shopping List Handoff keeps ingredient lists in this browser.",
+      "og:title": "Privacy — Shopping List Handoff",
+      "og:description": "Read how Shopping List Handoff keeps ingredient lists in this browser.",
+      "twitter:title": "Privacy — Shopping List Handoff",
+      "twitter:description": "Read how Shopping List Handoff keeps ingredient lists in this browser."
+    },
+    "h1": 1,
+    "main": 1,
+    "errors": [],
+    "serious": []
+  },
+  {
+    "path": "/terms",
+    "status": 200,
+    "title": "Terms — Shopping List Handoff",
+    "expectedTitle": "Terms — Shopping List Handoff",
+    "description": "Read the simple terms for this free local shopping-list tool.",
+    "expectedDescription": "Read the simple terms for this free local shopping-list tool.",
+    "metadata": {
+      "description": "Read the simple terms for this free local shopping-list tool.",
+      "og:title": "Terms — Shopping List Handoff",
+      "og:description": "Read the simple terms for this free local shopping-list tool.",
+      "twitter:title": "Terms — Shopping List Handoff",
+      "twitter:description": "Read the simple terms for this free local shopping-list tool."
+    },
+    "h1": 1,
+    "main": 1,
+    "errors": [],
+    "serious": []
+  },
+  {
+    "path": "/handoff#list=not-valid-data",
+    "status": 200,
+    "title": "Shared list — Shopping List Handoff",
+    "expectedTitle": "Shared list — Shopping List Handoff",
+    "description": "Check a shared shopping list in this browser without saving it.",
+    "expectedDescription": "Check a shared shopping list in this browser without saving it.",
+    "metadata": {
+      "description": "Check a shared shopping list in this browser without saving it.",
+      "og:title": "Shared list — Shopping List Handoff",
+      "og:description": "Check a shared shopping list in this browser without saving it.",
+      "twitter:title": "Shared list — Shopping List Handoff",
+      "twitter:description": "Check a shared shopping list in this browser without saving it."
+    },
+    "h1": 1,
+    "main": 1,
+    "errors": [],
+    "serious": []
+  },
+  {
+    "path": "/missing-polish-2",
+    "status": 404,
+    "title": "Page not found — Shopping List Handoff",
+    "expectedTitle": "Page not found — Shopping List Handoff",
+    "description": "This shopping-list page is missing. Return to Shopping List Handoff.",
+    "expectedDescription": "This shopping-list page is missing. Return to Shopping List Handoff.",
+    "metadata": {
+      "description": "This shopping-list page is missing. Return to Shopping List Handoff.",
+      "og:title": "Page not found — Shopping List Handoff",
+      "og:description": "This shopping-list page is missing. Return to Shopping List Handoff.",
+      "twitter:title": "Page not found — Shopping List Handoff",
+      "twitter:description": "This shopping-list page is missing. Return to Shopping List Handoff."
+    },
+    "h1": 1,
+    "main": 1,
+    "errors": [],
+    "serious": []
+  },
+  {
+    "directDemo": {
+      "banner": 1,
+      "reset": 1,
+      "startReal": 1,
+      "sample": 1,
+      "title": "Demo — Shopping List Handoff",
+      "canonical": "https://shopping-list-handoff.sociobot.in/demo"
+    }
+  }
+]

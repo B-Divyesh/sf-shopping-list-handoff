@@ -34,10 +34,10 @@ direct demo URL and route share metadata.
 | F-1-3 | Kept the declared browser-site-data clearing claim and real storage-clearing test. | `@claim:site-data-clear`. |
 | F-1-4 | Kept the decorative first-screen serial label removed. | `.factory/copy-audit.md`; landing screenshot. |
 | F-1-5 | Kept the abstract privacy serial marker removed. | `.factory/copy-audit.md`; landing screenshot. |
-| F-2-1 | Replaced “One ingredient per line works best.” with the direct instruction “Paste one ingredient per line.” | `.factory/copy-audit.md`; `local-root/screenshot-mobile.png`; live `/`. |
-| F-2-2 | Replaced the symbol-only print button with visible “Print shopping list” plus a decorative shortcut. | `@claim:print-sheet`; `local-demo/screenshot-mobile.png`; live `/demo`. |
-| F-2-3 | Standardized the product result as “handoff card” in hero copy and the conversion claim. | `@claim:pasted-ingredients-to-card`; `.factory/copy-audit.md`; live `/`. |
-| F-2-4 | Route render now updates description, canonical, Open Graph, and Twitter title/description. The static 404 now includes favicon, Apple icon, Open Graph, and Twitter metadata. | `routes set their own title, canonical URL, and share metadata`; `unknown paths return the designed HTTP 404`; local route checks and live `/privacy`, `/terms`, `/demo`, `/handoff`, `/missing-polish-2`. |
+| F-2-1 | Replaced “One ingredient per line works best.” with the direct instruction “Paste one ingredient per line.” | `.factory/copy-audit.md`; [`live-root/screenshot-mobile.png`](qa-evidence/polish-2/live-root/screenshot-mobile.png); cold live `/`. |
+| F-2-2 | Replaced the symbol-only print button with visible “Print shopping list” plus a decorative shortcut. | `@claim:print-sheet`; [`live-demo/screenshot-mobile.png`](qa-evidence/polish-2/live-demo/screenshot-mobile.png); cold live `/demo`. |
+| F-2-3 | Standardized the product result as “handoff card” in hero copy and the conversion claim. | `@claim:pasted-ingredients-to-card`; `.factory/copy-audit.md`; [`live-root/screenshot-desktop.png`](qa-evidence/polish-2/live-root/screenshot-desktop.png); cold live `/`. |
+| F-2-4 | Route render now updates description, canonical, Open Graph, and Twitter title/description. The static 404 now includes favicon, Apple icon, Open Graph, and Twitter metadata. | `routes set their own title, canonical URL, and share metadata`; `unknown paths return the designed HTTP 404`; [`live-route-check.json`](qa-evidence/polish-2/live-route-check.json), [`live-404-mobile-390.png`](qa-evidence/polish-2/live-404-mobile-390.png); live `/privacy`, `/terms`, `/demo`, `/handoff`, `/missing-polish-2`. |
 
 ## Evidence
 
@@ -51,4 +51,9 @@ direct demo URL and route share metadata.
   console errors, one h1, one main landmark, language, title, and image-alt
   checks. Screenshots and reports are under
   `.factory/qa-evidence/polish-2/local-root/` and `local-demo/`.
-- Deployed cold-browser evidence and final commit are recorded in the handoff.
+- Cold live checks passed after deployment: all six routes in
+  [`live-route-check.json`](qa-evidence/polish-2/live-route-check.json) have
+  the expected unique title, description, OG/Twitter metadata, one h1, one
+  main, no console errors, and no serious/critical axe findings. `/missing-polish-2`
+  returned HTTP 404. The direct live `/?demo=1` check found the banner, Reset
+  demo, Start for real, sample spaghetti, the Demo title, and `/demo` canonical.
