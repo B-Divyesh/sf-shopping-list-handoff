@@ -1,64 +1,79 @@
-# Shopping List Handoff — independent verification handoff
+# Shopping List Handoff — repair handoff
 
-## Status: FAIL — do not release candidate 8cf8a0d
+## Status: repaired and ready for static deployment
 
-Candidate `8cf8a0dd5801c69428b714a761858d6b8117d713` was independently tested on
-2026-08-28 at <https://shopping-list-handoff.sociobot.in>. The deployment
-byte-matches the candidate and the earlier deployment-only concern is resolved.
-Product code was not modified.
+This repair addresses every finding in independent verification 4 for candidate
+`8cf8a0dd5801c69428b714a761858d6b8117d713`. The artifact remains a Vite +
+TypeScript static web app and deploys from `dist/` to Azure Static Web Apps.
 
-The full evidence and defect detail are in
-[`.factory/verification-4.md`](verification-4.md).
+## Repairs
 
-## What passed
+- **Printed handoffs retain the shopper note.** A readable static print note is
+  rendered whenever the list has one. Screen-only inputs and controls remain
+  hidden in print media. The `@claim:print-sheet` test emulates print media and
+  asserts the sample instruction is present.
+- **Removing an item is reversible and keyboard-safe.** Remove now presents an
+  announced **Undo removal** action, moves keyboard focus to it, restores the
+  original position and checkbox focus on Undo, and persists both the removal
+  and restoration in the active local-storage namespace. Undo state is cleared
+  when changing routes, so it cannot cross from demo to real data.
+- **The HTTP 404 is a complete product page.** The existing real 404 response
+  now has the standard wordmark, navigation, footer, skip link, description,
+  canonical URL, focus styling, and responsive blueprint treatment.
 
-- Cold first-read and one-click sample demo gate.
-- All 14 exact commands in `.factory/claims.json` after `npm ci`.
-- `npm run lint`, `npm run typecheck`, all 27 Playwright tests, and
-  `npm run build`.
-- Live normal, boundary, invalid-input, recovery, copy, QR recipient, private
-  local file, import, and demo-isolation flows.
-- Live artifact parity, privacy request log, response security headers,
-  immutable asset caching, 304 revalidation, offline reload, and worker cache
-  revision behavior.
-- Desktop and 390 px mobile, keyboard operation, visible focus, 200% text
-  reflow, reduced motion, all 44 px targets, and live axe scans with no
-  violations.
-- Mobile Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices,
-  100 SEO; LCP 1,307 ms, TBT 90 ms, CLS 0.
+## Verification performed
 
-Build output is `dist/`. JavaScript is 18.21 KB gzip, CSS is 3.67 KB gzip, the
-hero is 33,426 bytes, and the generated offline cache is
-`slh-924c848c3790` with 15 shell URLs.
+Fresh install and quality gates:
 
-## Release blockers and gaps
+```sh
+npm ci                         # 138 packages audited, 0 vulnerabilities
+npm run lint                   # pass
+npm run typecheck              # pass
+npm test -- --reporter=list --timeout=30000  # 28/28 pass
+npm run build                  # pass; writes dist/
+```
 
-1. **High:** print media hides **Note for the shopper**. The sample buyer
-   instruction is silently absent from the printed handoff even though the UI
-   warns only that the note is excluded from QR. Render it in print and test
-   print contents.
-2. **Medium:** **Remove item** permanently writes the deletion with no Undo or
-   confirmation, no announcement, and focus loss to `<body>`. Add a reversible
-   or confirmed flow and deterministic keyboard focus.
-3. **Low:** the correct designed HTTP 404 omits the contract's standard
-   header/navigation/footer and basic description/canonical metadata.
+Every exact command in `.factory/claims.json` was run after `npm ci`; all 14
+claim commands passed. This includes the revised print claim, QR recipient and
+privacy paths, local file round-trip, demo isolation, and offline reload.
 
-## Reproduce
+Browser coverage in `tests/app.spec.ts` covers desktop and 390 px mobile,
+keyboard add/check/remove/undo, 200% text reflow, reduced motion, target sizes,
+route focus, privacy request recording, the generated-worker update fixture,
+offline reload, and response status for the designed 404. Axe WCAG 2 A/AA scans
+pass for `/`, `/demo`, `/privacy`, `/terms`, and the HTTP 404; the expected
+browser console entry for the deliberately loaded 404 is excluded while all
+other console/page errors fail the test.
+
+`/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/demo
+.factory/qa-evidence/repair-4` passed against the production build: HTTP 200,
+title, `lang=en`, one h1, main landmark, zero missing image alt attributes,
+zero unlabeled buttons, and zero page/console errors. Its HTML report and
+desktop/mobile screenshots are retained in `.factory/qa-evidence/repair-4/`.
+
+Build output: `assets/index-D2p86BJz.js` is **18.38 KB gzip**;
+`assets/index-BJ60HI3P.css` is **3.80 KB gzip**; the service worker revision is
+`slh-e67a61b07a6e` with **15** precached shell URLs. These remain within the
+static-web budgets. The last independent live Lighthouse run recorded 100/100
+Performance and Accessibility; this repair did not add external resources or
+meaningfully increase the initial bundle.
+
+## Run and deploy
 
 ```sh
 npm ci
-jq -r '.[].test' .factory/claims.json | while IFS= read -r test; do bash -lc "$test" || exit; done
-npm run lint
-npm run typecheck
-npm test -- --reporter=list --timeout=30000
+npm test
 npm run build
 ```
 
-For the blocking print defect, open `/demo`, leave its sample shopper note in
-place, emulate print media, and inspect `.note-label` and `#note`: both compute
-to `display: none`. For deletion, focus **Remove spaghetti**, press Enter, and
-reload; spaghetti remains absent from `slh:demo:list`, with no Undo available.
+Deploy the generated `dist/` directory using the repository's Azure Static Web
+Apps configuration (`dist/staticwebapp.config.json`). The routes `/demo`,
+`/privacy`, `/terms`, and `/handoff` rewrite to the SPA; unknown paths use the
+designed `/404.html` response override with HTTP 404.
 
-After repair, repeat the full claim gate and local suite, deploy `dist/`, then
-rerun byte parity, privacy requests, axe, 390 px keyboard/reflow, offline
-reload/update, response headers/caching, and mobile Lighthouse.
+## Known gaps / next steps
+
+No product gaps are known. After deployment, verify byte parity and the live
+404 response at `https://shopping-list-handoff.sociobot.in/missing`, then repeat
+the live offline-update and mobile Lighthouse checks as part of deployment
+propagation.

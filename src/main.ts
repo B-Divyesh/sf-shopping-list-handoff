@@ -25,6 +25,7 @@ let showQr = false;
 let showDone = false;
 let toast = '';
 let pendingFocus = '';
+let removedItem: { item: Item; index: number } | null = null;
 
 // A handoff needs quantities a person can realistically check. This also keeps
 // conversion and JSON/QR serialization finite.
@@ -131,8 +132,8 @@ function decodePayload(): Item[] | null {
 function handoffUrl() { return `${location.origin}/handoff#list=${encodePayload(qrPayload())}`; }
 function setToast(message: string) { toast = message; render(); window.setTimeout(() => { if (toast === message) { toast = ''; render(); } }, 2600); }
 function announceRoute() { requestAnimationFrame(() => { const title = document.querySelector<HTMLElement>('h1'); title?.focus(); const live = document.querySelector<HTMLElement>('#route-announcement'); if (live && title) live.textContent = `${title.textContent}.`; }); }
-function navigate(path: string) { history.pushState({}, '', path); demo = location.pathname === '/demo'; list = path === '/handoff' ? fresh() : load(); showQr = false; showDone = false; render(); window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); announceRoute(); }
-window.addEventListener('popstate', () => { demo = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1'; list = location.pathname === '/handoff' ? fresh() : load(); showQr = false; showDone = false; render(); announceRoute(); });
+function navigate(path: string) { history.pushState({}, '', path); demo = location.pathname === '/demo'; list = path === '/handoff' ? fresh() : load(); showQr = false; showDone = false; removedItem = null; render(); window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); announceRoute(); }
+window.addEventListener('popstate', () => { demo = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1'; list = location.pathname === '/handoff' ? fresh() : load(); showQr = false; showDone = false; removedItem = null; render(); announceRoute(); });
 
 function header() { const how = location.pathname === '/' ? '#how' : '/#how'; return `<header class="site-header"><a class="wordmark" href="/" data-route>SLH <span>01</span></a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="${how}">How it works</a><a href="/privacy" data-route>Privacy</a></nav></header>`; }
 function footer() { return `<footer><p>Clear lists for people outside your app.</p><p><a href="/privacy" data-route>Privacy</a> · <a href="/terms" data-route>Terms</a> · Built by Param Factory · v1.0.0</p></footer>`; }
@@ -151,7 +152,7 @@ function builder() {
   ${warning ? `<p class="warning" role="status"><b>CHECK:</b> ${warning} count or unmeasured item${warning === 1 ? '' : 's'} cannot be converted. Confirm the pack or produce size.</p>` : ''}
   <div class="checklist">${groups.length ? groups.map(group => `<section class="group"><h3>${group}</h3><ul>${visible.filter(i => i.category === group).map(item => `<li><label><input type="checkbox" data-done="${item.id}" ${item.done ? 'checked' : ''}/><span class="tick" aria-hidden="true"></span><span class="amount">${esc([number(item.amount), item.unit].filter(Boolean).join(' '))}</span><span>${esc(item.name)}</span></label><button class="remove" data-remove="${item.id}" aria-label="Remove ${esc(item.name)}">×</button></li>`).join('')}</ul></section>`).join('') : `<div class="empty"><p>${showDone ? 'No checked items to review.' : 'Your handoff card will appear here.'}</p><p>${showDone ? 'Return to items left to shop.' : 'Paste ingredients or add an item above.'}</p></div>`}</div>
   ${list.items.some(i => i.done) ? `<button class="text-button done-toggle" id="show-done" aria-pressed="${showDone}">${showDone ? 'Show items left to shop' : `Show ${list.items.filter(i => i.done).length} checked item${list.items.filter(i => i.done).length === 1 ? '' : 's'}`}</button>` : ''}
-  <label class="note-label" for="note">Note for the shopper <span>(not in QR)</span></label><textarea id="note" rows="2" placeholder="Optional pickup note">${esc(list.note)}</textarea>
+  <label class="note-label" for="note">Note for the shopper <span>(not in QR)</span></label><textarea id="note" rows="2" placeholder="Optional pickup note">${esc(list.note)}</textarea>${list.note ? `<p class="print-note"><b>Note for the shopper:</b> ${esc(list.note)}</p>` : ''}
   <div class="export-row"><button class="primary" id="copy-text">Copy plain text</button><button class="secondary" id="qr">${showQr ? 'Hide QR' : 'Make QR code'}</button><button class="secondary" id="save-file">Save local file</button></div>${showQr ? `<div class="qr-panel"><canvas id="qr-canvas" width="240" height="240" aria-label="QR code for the shopping list"></canvas><p>Scan to open this list in a browser. The code includes item lines only.</p><a id="qr-link" href="${esc(handoffUrl())}">Open the recipient view</a></div>` : ''}</section></div>`;
 }
 function receivedHandoff() {
@@ -169,7 +170,7 @@ function render() {
   document.title = currentTitle;
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
   if (canonical) canonical.href = `https://shopping-list-handoff.sociobot.in${route === '/' ? '/' : route}`;
-  app.innerHTML = `${header()}${demo ? `<aside class="demo-banner" aria-label="Demo mode"><span><b>Demo</b> — sample data, nothing is saved.</span><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></aside>` : ''}${isHandoff ? receivedHandoff() : isLegal ? legal(route.slice(1) as 'privacy' | 'terms') : landing()}${footer()}<div id="route-announcement" class="sr-only" aria-live="polite"></div><div class="toast" role="status" aria-live="polite">${esc(toast)}</div>`;
+  app.innerHTML = `${header()}${demo ? `<aside class="demo-banner" aria-label="Demo mode"><span><b>Demo</b> — sample data, nothing is saved.</span><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></aside>` : ''}${isHandoff ? receivedHandoff() : isLegal ? legal(route.slice(1) as 'privacy' | 'terms') : landing()}${footer()}<div id="route-announcement" class="sr-only" aria-live="polite"></div>${removedItem ? `<div class="undo-notice" role="status" aria-live="polite"><span>${esc(removedItem.item.name)} removed from this list.</span><button class="secondary" id="undo-remove">Undo removal</button></div>` : ''}<div class="toast" role="status" aria-live="polite">${esc(toast)}</div>`;
   bind(); if (showQr) makeQr(); if (pendingFocus) { const target = pendingFocus; pendingFocus = ''; requestAnimationFrame(() => document.querySelector<HTMLElement>(target)?.focus()); }
 }
 function bind() {
@@ -182,7 +183,25 @@ function bind() {
   document.querySelector<HTMLInputElement>('#list-title')?.addEventListener('change', event => { list.title = (event.target as HTMLInputElement).value.trim() || 'My shopping list'; save(); render(); });
   document.querySelector<HTMLTextAreaElement>('#note')?.addEventListener('change', event => { list.note = (event.target as HTMLTextAreaElement).value; save(); setToast('Shopper note saved on this device.'); });
   document.querySelectorAll<HTMLInputElement>('[data-done]').forEach(box => box.addEventListener('change', () => { const item = list.items.find(i => i.id === box.dataset.done); if (item) { item.done = box.checked; if (!item.done) showDone = false; pendingFocus = item.done ? '#show-done' : `[data-done="${item.id}"]`; save(); render(); setToast(item.done ? `${item.name} checked. Use Show checked item to review it.` : `${item.name} returned to items left to shop.`); } }));
-  document.querySelectorAll<HTMLButtonElement>('[data-remove]').forEach(button => button.addEventListener('click', () => { list.items = list.items.filter(i => i.id !== button.dataset.remove); save(); render(); }));
+  document.querySelectorAll<HTMLButtonElement>('[data-remove]').forEach(button => button.addEventListener('click', () => {
+    const index = list.items.findIndex(item => item.id === button.dataset.remove);
+    if (index < 0) return;
+    removedItem = { item: list.items[index], index };
+    list.items.splice(index, 1);
+    save();
+    pendingFocus = '#undo-remove';
+    render();
+  }));
+  document.querySelector<HTMLButtonElement>('#undo-remove')?.addEventListener('click', () => {
+    if (!removedItem) return;
+    const { item, index } = removedItem;
+    list.items.splice(Math.min(index, list.items.length), 0, item);
+    removedItem = null;
+    save();
+    pendingFocus = `[data-done="${item.id}"]`;
+    render();
+    setToast(`${item.name} restored to the list.`);
+  });
   document.querySelector<HTMLButtonElement>('#copy-text')?.addEventListener('click', async () => { try { await navigator.clipboard.writeText(listText()); } catch { const area = document.createElement('textarea'); area.value = listText(); document.body.append(area); area.select(); document.execCommand('copy'); area.remove(); } setToast('Plain text copied. Send it in any message app.'); });
   document.querySelector<HTMLButtonElement>('#save-file')?.addEventListener('click', () => { const data = JSON.stringify({ format: 'shopping-list-handoff/v1', exportedAt: new Date().toISOString(), list: { ...list, note: undefined } }, null, 2); download(data, `${safeName(list.title)}.shopping-list.json`, 'application/json'); setToast('Local file saved. Shopper notes are left out.'); });
   document.querySelector<HTMLButtonElement>('#show-done')?.addEventListener('click', () => { showDone = !showDone; pendingFocus = showDone ? '[data-done]' : '#show-done'; render(); setToast(showDone ? 'Showing checked items. Uncheck an item to return it to the handoff.' : 'Showing items left to shop.'); });

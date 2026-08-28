@@ -76,11 +76,16 @@ test('a local handoff file imports into a real list @claim:local-file-roundtrip'
   await expect(page.getByText('6 items opened from this device.')).toBeVisible();
 });
 
-test('print control invokes the browser print dialog @claim:print-sheet', async ({ page }) => {
+test('print control invokes the browser print dialog and includes the shopper note @claim:print-sheet', async ({ page }) => {
   await page.goto('/demo');
   await page.evaluate(() => { window.print = () => document.body.dataset.printed = 'yes'; });
   await page.getByRole('button', { name: 'Print shopping list' }).click();
   await expect.poll(() => page.evaluate(() => document.body.dataset.printed)).toBe('yes');
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('.print-note')).toHaveText('Note for the shopper: Pick a ripe lemon. The basil can be loose.');
+  await expect(page.locator('.print-note')).toBeVisible();
+  await expect(page.getByLabel(/Note for the shopper/)).toBeHidden();
+  await page.emulateMedia({ media: 'screen' });
 });
 
 test('QR opens a recipient list and excludes private fields @claim:qr-recipient @claim:qr-private', async ({ page, browser }) => {
@@ -210,6 +215,23 @@ test('checked items can be restored and return to every handoff export', async (
   expect(exported).toContain('spaghetti');
 });
 
+test('removing an item is undoable, announced, persisted, and returns keyboard focus', async ({ page }) => {
+  await page.goto('/demo');
+  const remove = page.getByRole('button', { name: 'Remove spaghetti' });
+  await remove.focus();
+  await remove.press('Enter');
+  await expect(page.getByText('spaghetti', { exact: true })).toHaveCount(0);
+  const undo = page.getByRole('button', { name: 'Undo removal' });
+  await expect(page.locator('.undo-notice')).toContainText('spaghetti removed from this list.');
+  await expect(undo).toBeFocused();
+  expect(await page.evaluate(() => localStorage.getItem('slh:demo:list'))).not.toContain('spaghetti');
+  await undo.click();
+  await expect(page.getByText('spaghetti', { exact: true })).toBeVisible();
+  await expect(page.getByRole('checkbox').first()).toBeFocused();
+  await page.reload();
+  await expect(page.getByText('spaghetti', { exact: true })).toBeVisible();
+});
+
 test('demo storage is separate from real-list storage @claim:local-only', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
@@ -326,6 +348,10 @@ test('unknown paths return the designed HTTP 404', async ({ page }) => {
   await expect(page).toHaveTitle('Page not found — Shopping List Handoff');
   await expect(page.getByRole('heading', { name: 'This sheet is not here.' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Back to Shopping List Handoff' })).toHaveAttribute('href', '/');
+  await expect(page.getByRole('banner').getByLabel('Main navigation')).toBeVisible();
+  await expect(page.getByRole('contentinfo')).toContainText('Built by Param Factory');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /shopping-list page is missing/i);
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://shopping-list-handoff.sociobot.in/404');
   const config = JSON.parse(await readFile('public/staticwebapp.config.json', 'utf8'));
   expect(config.navigationFallback).toBeUndefined();
   expect(config.routes.filter((route: { rewrite?: string }) => route.rewrite === '/index.html').map((route: { route: string }) => route.route)).toEqual(['/demo', '/privacy', '/terms', '/handoff']);
@@ -377,9 +403,9 @@ test('a new service-worker revision replaces the offline shell', async ({ browse
 
 test('public routes have no serious accessibility violations or console errors', async ({ page }) => {
   const errors: string[] = [];
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('console', message => { if (message.type() === 'error' && !message.text().includes('server responded with a status of 404')) errors.push(message.text()); });
   page.on('pageerror', error => errors.push(error.message));
-  for (const route of ['/', '/demo', '/privacy', '/terms']) {
+  for (const route of ['/', '/demo', '/privacy', '/terms', '/missing-accessibility-check']) {
     await page.goto(route);
     const scan = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
     expect(scan.violations.filter(v => ['serious', 'critical'].includes(v.impact || '')).map(v => v.id), route).toEqual([]);
