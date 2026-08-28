@@ -1,6 +1,6 @@
 # Shopping List Handoff — repair handoff
 
-## Status: repaired and ready for static deployment
+## Status: repaired, pushed, and awaiting static deployment propagation
 
 This repair addresses every finding in independent verification 4 for candidate
 `8cf8a0dd5801c69428b714a761858d6b8117d713`. The artifact remains a Vite +
@@ -73,10 +73,17 @@ Apps configuration (`dist/staticwebapp.config.json`). The routes `/demo`,
 `/privacy`, `/terms`, and `/handoff` rewrite to the SPA; unknown paths use the
 designed `/404.html` response override with HTTP 404.
 
-## Known gaps / next steps
+## Deployment and known gaps
 
-No product gaps are known. After deployment, verify byte parity and the live
-404 response at `https://shopping-list-handoff.sociobot.in/missing`, then repeat
-the live offline-update and mobile Lighthouse checks as part of deployment
-propagation; the latter is also needed to replace the local Chromium-crash
-Lighthouse attempt with a fresh score.
+Repair commits `47d9425` and `86c9ddd` were pushed to `origin/main` for the
+existing Azure Static Web Apps deployment. At the post-push check, the public
+hostname still served the preceding `index-GOtFqmZj.js` and
+`index-BgLP8eEe.css` assets, with the preceding minimal 404 document. No Azure
+Static Web App resource mapping or deployment token is stored in this repository,
+so the factory deployment has not yet propagated this new artifact.
+
+No product code gaps are known. Once the factory static deployment updates,
+verify byte parity and the live 404 response at
+`https://shopping-list-handoff.sociobot.in/missing`, then repeat the live
+offline-update and mobile Lighthouse checks. The latter also replaces the local
+Chromium-crash Lighthouse attempt with a fresh score.
