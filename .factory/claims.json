@@ -14,6 +14,13 @@
     "sandbox": "fresh browser context at /demo"
   },
   {
+    "id": "free-use",
+    "claim": "Free to use: a demo handoff has no payment or account gate.",
+    "where": "landing facts, Terms",
+    "test": "npm test -- --grep @claim:free-use",
+    "sandbox": "fresh browser context at /demo; create and open a QR handoff while recording controls and requests"
+  },
+  {
     "id": "plain-text-export",
     "claim": "Copies the shopper list as plain text.",
     "where": "handoff card button",

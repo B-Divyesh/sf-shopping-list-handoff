@@ -13,6 +13,34 @@ test('demo opens with a ready handoff card without an account @claim:sample-demo
   await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
 });
 
+test('a demo handoff has no payment or account gate @claim:free-use', async ({ page, browser }) => {
+  const requests: string[] = [];
+  page.on('request', request => requests.push(request.url()));
+  await page.goto('/demo');
+  await expect(page.getByText('FREE', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Make QR code' }).click();
+  const handoff = await page.locator('#qr-link').getAttribute('href');
+  expect(handoff).toBeTruthy();
+
+  const recipient = await browser.newContext();
+  const recipientPage = await recipient.newPage();
+  recipientPage.on('request', request => requests.push(request.url()));
+  try {
+    await recipientPage.goto(handoff!);
+    await expect(recipientPage.getByRole('heading', { name: 'Shop this handed-off list' })).toBeVisible();
+    const visibleControls = (await Promise.all([page, recipientPage].map(async current =>
+      current.locator('a, button, input, textarea, select, form').allTextContents()
+    ))).flat();
+    expect(visibleControls.join(' ')).not.toMatch(/payment|pay now|checkout|purchase|subscribe|sign in|log in|create account/i);
+    expect(requests.every(url => {
+      const parsed = new URL(url);
+      return parsed.origin === 'http://127.0.0.1:4173' && !/payment|checkout|purchase|subscribe|account/i.test(parsed.pathname);
+    })).toBeTruthy();
+  } finally {
+    await recipient.close();
+  }
+});
+
 test('paste normalizes a recipe list and plain text copies it @claim:plain-text-export', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/demo');
