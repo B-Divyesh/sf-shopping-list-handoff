@@ -215,24 +215,14 @@ test('blank item names get a visible announced error', async ({ page }) => {
 
 test('normalizes compatible quantities and keeps uncertain count units visible @claim:quantity-normalization', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('500 g rice\n0.5 kg rice\n1 bunch basil\n1 bunch basil');
+  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('500 g rice\n0.5 kg rice\n1 bunch basil\n1 bunch basil\n2 tbsp olive oil\n1 tsp cumin\n2 tbsp vinegar\n1 tsp vinegar');
   await page.getByRole('button', { name: 'Add ingredients' }).click();
   await expect(page.getByText('1 kg', { exact: true })).toBeVisible();
   await expect(page.getByText('2 bunch', { exact: true })).toBeVisible();
-  await expect(page.locator('.warning')).toContainText('cannot be converted');
-});
-
-test('keeps an entered cooking unit until a compatible merge needs conversion', async ({ page }) => {
-  await page.goto('/demo');
-  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('1 tsp cumin');
-  await page.getByRole('button', { name: 'Add ingredients' }).click();
   await expect(page.getByText('2 tbsp', { exact: true })).toBeVisible();
-  await expect(page.getByText('29.57 ml', { exact: true })).toHaveCount(0);
-
-  await page.goto('/');
-  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('2 tbsp olive oil\n1 tsp olive oil');
-  await page.getByRole('button', { name: 'Add ingredients' }).click();
   await expect(page.getByText('2.33 tbsp', { exact: true })).toBeVisible();
+  await expect(page.getByText('29.57 ml', { exact: true })).toHaveCount(0);
+  await expect(page.locator('.warning')).toContainText('cannot be converted');
 });
 
 test('rejects an overflowing amount before it can be saved', async ({ page }) => {

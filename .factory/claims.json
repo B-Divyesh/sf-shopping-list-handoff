@@ -1,10 +1,10 @@
 [
   {
     "id": "sample-demo",
-    "claim": "Try it with sample data opens a ready handoff card.",
+    "claim": "Try it with sample data opens an in-viewport Wednesday pasta night handoff card.",
     "where": "landing hero",
     "test": "npm test -- --grep @claim:sample-demo",
-    "sandbox": "fresh browser context at /demo"
+    "sandbox": "fresh 390 × 844 browser context; click the landing action and assert the sample title plus two item rows intersect the viewport"
   },
   {
     "id": "no-account",
@@ -78,10 +78,10 @@
   },
   {
     "id": "quantity-normalization",
-    "claim": "Combines compatible quantities and keeps uncertain count units visible for review.",
+    "claim": "Combines compatible quantities, preserves unmerged cooking units, and keeps uncertain count units visible for review.",
     "where": "ingredient input, handoff warning, README",
     "test": "npm test -- --grep @claim:quantity-normalization",
-    "sandbox": "paste compatible metric quantities and repeated count units"
+    "sandbox": "paste compatible metric and volume quantities, an unrelated cooking measure, and repeated count units"
   },
   {
     "id": "local-only",
