@@ -5,12 +5,20 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { renderServiceWorker } from '../scripts/service-worker.mjs';
 
-test('demo opens with a ready handoff card without an account @claim:sample-demo @claim:no-account', async ({ page }) => {
-  await page.goto('/demo');
+test('one click opens an in-viewport sample handoff card without an account @claim:sample-demo @claim:no-account', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\/demo$/);
   await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Hand off a clear shopping list' })).toBeVisible();
-  await expect(page.getByText('spaghetti', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wednesday pasta night handoff' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
+  for (const locator of [page.getByLabel('List title'), page.getByText('spaghetti', { exact: true }), page.getByText('olive oil', { exact: true })]) {
+    const box = await locator.boundingBox();
+    const label = await locator.textContent() || 'list title';
+    expect(box?.y, label).toBeGreaterThanOrEqual(0);
+    expect((box?.y || 0) + (box?.height || 0), label).toBeLessThanOrEqual(844);
+  }
 });
 
 test('the direct demo query opens the isolated sample with its controls', async ({ page }) => {
@@ -19,6 +27,7 @@ test('the direct demo query opens the isolated sample with its controls', async 
   await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start for real' })).toBeVisible();
   await expect(page.getByText('spaghetti', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wednesday pasta night handoff' })).toBeVisible();
   await expect(page).toHaveTitle('Demo — Shopping List Handoff');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://shopping-list-handoff.sociobot.in/demo');
 });
@@ -27,7 +36,6 @@ test('a demo handoff has no payment or account gate @claim:free-use', async ({ p
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
   await page.goto('/demo');
-  await expect(page.getByText('FREE', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Make QR code' }).click();
   const handoff = await page.locator('#qr-link').getAttribute('href');
   expect(handoff).toBeTruthy();
@@ -112,10 +120,10 @@ test('print control invokes the browser print dialog and includes the shopper no
 
 test('routes set their own title, canonical URL, and share metadata', async ({ page }) => {
   const routes = [
-    { path: '/', title: 'Shopping List Handoff — Clear shopping lists', description: 'Turn pasted ingredients into a clear handoff card another shopper can use.', canonical: '/' },
-    { path: '/demo', title: 'Demo — Shopping List Handoff', description: 'Try a ready handoff card with sample pasta-night ingredients.', canonical: '/demo' },
+    { path: '/', title: 'Shopping List Handoff — Hand off a shopping list', description: 'Turn pasted ingredients into a handoff card another shopper can use.', canonical: '/' },
+    { path: '/demo', title: 'Demo — Shopping List Handoff', description: 'Open a sample pasta-night handoff card and check the item list.', canonical: '/demo' },
     { path: '/privacy', title: 'Privacy — Shopping List Handoff', description: 'Read how Shopping List Handoff keeps ingredient lists in this browser.', canonical: '/privacy' },
-    { path: '/terms', title: 'Terms — Shopping List Handoff', description: 'Read the simple terms for this free local shopping-list tool.', canonical: '/terms' },
+    { path: '/terms', title: 'Terms — Shopping List Handoff', description: 'Read the terms for this free local shopping-list tool.', canonical: '/terms' },
     { path: '/handoff#list=not-valid-data', title: 'Shared list — Shopping List Handoff', description: 'Check a shared shopping list in this browser without saving it.', canonical: '/handoff' }
   ];
   for (const route of routes) {
@@ -212,6 +220,19 @@ test('normalizes compatible quantities and keeps uncertain count units visible @
   await expect(page.getByText('1 kg', { exact: true })).toBeVisible();
   await expect(page.getByText('2 bunch', { exact: true })).toBeVisible();
   await expect(page.locator('.warning')).toContainText('cannot be converted');
+});
+
+test('keeps an entered cooking unit until a compatible merge needs conversion', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('1 tsp cumin');
+  await page.getByRole('button', { name: 'Add ingredients' }).click();
+  await expect(page.getByText('2 tbsp', { exact: true })).toBeVisible();
+  await expect(page.getByText('29.57 ml', { exact: true })).toHaveCount(0);
+
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('2 tbsp olive oil\n1 tsp olive oil');
+  await page.getByRole('button', { name: 'Add ingredients' }).click();
+  await expect(page.getByText('2.33 tbsp', { exact: true })).toBeVisible();
 });
 
 test('rejects an overflowing amount before it can be saved', async ({ page }) => {
@@ -323,7 +344,7 @@ test('works offline after the first visit @claim:offline-reload', async ({ page,
   await page.reload();
   await context.setOffline(true);
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Hand off a clear shopping list' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Wednesday pasta night handoff' })).toBeVisible();
   await context.setOffline(false);
 });
 
@@ -359,13 +380,16 @@ test('start for real accurately acknowledges a saved real list', async ({ page }
 
 test('routes announce their heading and restore focus with browser history', async ({ page }) => {
   await page.goto('/');
-  await page.getByLabel('Main navigation').getByRole('link', { name: 'Privacy' }).click();
-  await expect(page.getByRole('heading', { name: 'Privacy is the default' })).toBeFocused();
-  await expect(page.locator('#route-announcement')).toHaveText('Privacy is the default.');
+  await page.evaluate(() => window.scrollTo(0, 1200));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(1200);
+  await page.getByLabel('Main navigation').getByRole('link', { name: 'Privacy' }).evaluate((link: HTMLElement) => link.click());
+  await expect(page.getByRole('heading', { name: 'How Shopping List Handoff stores data' })).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('How Shopping List Handoff stores data.');
   await expect(page.getByRole('link', { name: 'How it works' })).toHaveAttribute('href', '/#how');
   await page.goBack();
   await expect(page.getByRole('heading', { name: 'Hand off a clear shopping list' })).toBeFocused();
   await expect(page.locator('#route-announcement')).toHaveText('Hand off a clear shopping list.');
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(1190);
 });
 
 test('mobile reflows at 200 percent text size and keeps all footer links touch-sized', async ({ page }) => {
@@ -404,7 +428,7 @@ test('unknown paths return the designed HTTP 404', async ({ page }) => {
   const response = await page.goto('/missing-release-check');
   expect(response?.status()).toBe(404);
   await expect(page).toHaveTitle('Page not found — Shopping List Handoff');
-  await expect(page.getByRole('heading', { name: 'This sheet is not here.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'This page was not found' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Back to Shopping List Handoff' })).toHaveAttribute('href', '/');
   await expect(page.getByRole('banner').getByLabel('Main navigation')).toBeVisible();
   await expect(page.getByRole('contentinfo')).toContainText('Built by Param Factory');
@@ -468,7 +492,7 @@ test('public routes have no serious accessibility violations or console errors',
   const errors: string[] = [];
   page.on('console', message => { if (message.type() === 'error' && !message.text().includes('server responded with a status of 404')) errors.push(message.text()); });
   page.on('pageerror', error => errors.push(error.message));
-  for (const route of ['/', '/demo', '/privacy', '/terms', '/missing-accessibility-check']) {
+  for (const route of ['/', '/demo', '/privacy', '/terms', '/handoff', '/missing-accessibility-check']) {
     await page.goto(route);
     const scan = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
     expect(scan.violations.filter(v => ['serious', 'critical'].includes(v.impact || '')).map(v => v.id), route).toEqual([]);

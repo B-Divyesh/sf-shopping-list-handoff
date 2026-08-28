@@ -26,6 +26,7 @@ let showDone = false;
 let toast = '';
 let pendingFocus = '';
 let removedItem: { item: Item; index: number } | null = null;
+type RouteHistoryState = { scrollX?: number; scrollY?: number };
 
 // A handoff needs quantities a person can realistically check. This also keeps
 // conversion and JSON/QR serialization finite.
@@ -86,29 +87,47 @@ function parse(text: string): { items: Item[]; invalidLines: number[] } {
   });
   return { items, invalidLines };
 }
+function roundAmount(value: number) { return Math.round(value * 100) / 100; }
+function mergeDimension(item: Item) {
+  const info = units[item.unit];
+  return info && info.base !== 'count' ? info.base : item.unit;
+}
+function amountInBase(item: Item) {
+  const info = units[item.unit];
+  return item.amount! * (info && info.base !== 'count' ? info.factor : 1);
+}
+function practicalUnit(base: string, amount: number) {
+  if (base === 'g') return amount >= 1000 ? 'kg' : 'g';
+  if (base !== 'ml') return base;
+  if (amount >= units.cup.factor) return 'cup';
+  if (amount >= units.tbsp.factor) return 'tbsp';
+  if (amount >= units.tsp.factor) return 'tsp';
+  return 'ml';
+}
 function normalized(items: Item[]) {
   const output: Item[] = [];
-  for (const item of items) {
-    const info = units[item.unit];
-    const base = item.amount !== null && info && info.base !== 'count' ? info.base : item.unit;
-    const amount = item.amount !== null && info && info.base !== 'count' ? item.amount * info.factor : item.amount;
-    const existing = output.find(other => {
-      const otherInfo = units[other.unit];
-      const otherBase = otherInfo && otherInfo.base !== 'count' ? otherInfo.base : other.unit;
-      return other.name.toLowerCase() === item.name.toLowerCase() && otherBase === base && other.amount !== null && amount !== null;
-    });
-    if (existing && existing.amount !== null && amount !== null) {
-      const existingInfo = units[existing.unit];
-      existing.amount = existingInfo && existingInfo.base !== 'count' ? existing.amount * existingInfo.factor + amount : existing.amount + amount;
-      existing.unit = base;
-    } else output.push({ ...item, amount, unit: base });
+  for (const source of items) {
+    const item = { ...source, amount: source.amount === null ? null : roundAmount(source.amount) };
+    if (item.amount === null) { output.push(item); continue; }
+    const dimension = mergeDimension(item);
+    const existing = output.find(other => other.amount !== null
+      && other.name.toLowerCase() === item.name.toLowerCase()
+      && mergeDimension(other) === dimension);
+    if (!existing || existing.amount === null) { output.push(item); continue; }
+
+    // Keep a cooking measure as entered when it can be added directly. Only
+    // convert when two compatible, differently measured ingredients merge.
+    if (existing.unit === item.unit) {
+      existing.amount = roundAmount(existing.amount + item.amount);
+      continue;
+    }
+    const total = amountInBase(existing) + amountInBase(item);
+    const unit = practicalUnit(dimension, total);
+    const factor = units[unit]?.factor || 1;
+    existing.amount = roundAmount(total / factor);
+    existing.unit = unit;
   }
-  return output.map(item => {
-    if (item.amount === null || !units[item.unit] || units[item.unit].base === 'count') return item;
-    if (item.unit === 'g' && item.amount >= 1000) return { ...item, amount: item.amount / 1000, unit: 'kg' };
-    if (item.unit === 'ml' && item.amount >= 1000) return { ...item, amount: item.amount / 1000, unit: 'l' };
-    return { ...item, amount: Math.round(item.amount * 100) / 100 };
-  });
+  return output;
 }
 function listText() { return `${list.title}\n${list.items.filter(i => !i.done).map(i => `- ${[number(i.amount), i.unit, i.name].filter(Boolean).join(' ')}`).join('\n')}${list.note ? `\n\nNote: ${list.note}` : ''}`; }
 function qrPayload(): QrPayload { return { v: 1, i: list.items.filter(i => !i.done).map(i => [i.amount, i.unit, i.name]) }; }
@@ -131,37 +150,73 @@ function decodePayload(): Item[] | null {
 }
 function handoffUrl() { return `${location.origin}/handoff#list=${encodePayload(qrPayload())}`; }
 function setToast(message: string) { toast = message; render(); window.setTimeout(() => { if (toast === message) { toast = ''; render(); } }, 2600); }
-function announceRoute() { requestAnimationFrame(() => { const title = document.querySelector<HTMLElement>('h1'); title?.focus(); const live = document.querySelector<HTMLElement>('#route-announcement'); if (live && title) live.textContent = `${title.textContent}.`; }); }
-function navigate(path: string) { history.pushState({}, '', path); demo = location.pathname === '/demo'; list = path === '/handoff' ? fresh() : load(); showQr = false; showDone = false; removedItem = null; render(); window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); announceRoute(); }
-window.addEventListener('popstate', () => { demo = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1'; list = location.pathname === '/handoff' ? fresh() : load(); showQr = false; showDone = false; removedItem = null; render(); announceRoute(); });
+function routeState(scrollX = window.scrollX, scrollY = window.scrollY): RouteHistoryState {
+  const state = history.state && typeof history.state === 'object' ? history.state as RouteHistoryState : {};
+  return { ...state, scrollX, scrollY };
+}
+function announceRoute(scroll?: RouteHistoryState) {
+  requestAnimationFrame(() => {
+    const title = document.querySelector<HTMLElement>('h1');
+    title?.focus({ preventScroll: true });
+    const live = document.querySelector<HTMLElement>('#route-announcement');
+    if (live && title) live.textContent = `${title.textContent}.`;
+    if (scroll) window.scrollTo(scroll.scrollX || 0, scroll.scrollY || 0);
+  });
+}
+function navigate(path: string) {
+  history.replaceState(routeState(), '', location.href);
+  history.pushState({ scrollX: 0, scrollY: 0 } satisfies RouteHistoryState, '', path);
+  demo = location.pathname === '/demo';
+  list = path === '/handoff' ? fresh() : load();
+  showQr = false; showDone = false; removedItem = null;
+  render();
+  window.scrollTo(0, 0);
+  announceRoute();
+}
+window.addEventListener('popstate', event => {
+  demo = location.pathname === '/demo' || new URLSearchParams(location.search).get('demo') === '1';
+  list = location.pathname === '/handoff' ? fresh() : load();
+  showQr = false; showDone = false; removedItem = null;
+  render();
+  announceRoute(event.state && typeof event.state === 'object' ? event.state as RouteHistoryState : { scrollX: 0, scrollY: 0 });
+});
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+history.replaceState(routeState(), '', location.href);
 
-function header() { const how = location.pathname === '/' ? '#how' : '/#how'; return `<header class="site-header"><a class="wordmark" href="/" data-route>SLH <span>01</span></a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="${how}">How it works</a><a href="/privacy" data-route>Privacy</a></nav></header>`; }
+function header() { const how = location.pathname === '/' ? '#how' : '/#how'; return `<header class="site-header"><a class="wordmark" href="/" data-route>Shopping List Handoff</a><nav aria-label="Main navigation"><a href="/demo" data-route>Demo</a><a href="${how}">How it works</a><a href="/privacy" data-route>Privacy</a></nav></header>`; }
 function footer() { return `<footer><p>Clear lists for people outside your app.</p><p><a href="/privacy" data-route>Privacy</a> · <a href="/terms" data-route>Terms</a> · Built by Param Factory · v1.0.0</p></footer>`; }
 function facts() { return `<ul class="facts"><li><b>LOCAL</b> Stored in this browser</li><li><b>OFFLINE</b> Works after first visit</li><li><b>FREE</b> No account needed</li></ul>`; }
 function landing() { return `<main id="main" tabindex="-1">
-  <section class="hero" aria-labelledby="page-title"><div class="hero-copy"><h1 id="page-title" tabindex="-1">Hand off a clear shopping list</h1><p class="lede">For cooks who need someone outside their app to shop without questions.</p><div class="hero-actions"><button class="primary" id="try-demo">Try it with sample data</button><span>Opens a ready-to-send pasta list.</span></div>${facts()}</div><figure class="hero-art"><img src="/assets/blueprint-handoff.webp" width="1200" height="800" fetchpriority="high" decoding="async" alt="A drafted recipe list transfers from a phone-shaped sheet to a paper checklist."/><figcaption>Pasted ingredients become a handoff card.</figcaption></figure></section>
-  <section class="app-section" aria-labelledby="builder-title"><div class="section-mark">02 / MAKE THE LIST</div><div class="section-head"><h2 id="builder-title">Paste ingredients or start a list</h2><p>Paste one ingredient per line. We keep uncertain quantities visible.</p></div>${builder()}</section>
-  <section id="how" class="how" aria-labelledby="how-title"><div class="section-mark">03 / HOW IT WORKS</div><h2 id="how-title">Make a list someone can use</h2><ol><li><b>Paste</b><span>Paste ingredient lines into the list.</span></li><li><b>Check</b><span>Review units and produce counts before sending.</span></li><li><b>Hand off</b><span>Print, copy, scan, or save a local file.</span></li></ol></section>
+  <section class="hero" aria-labelledby="page-title"><div class="hero-copy"><h1 id="page-title" tabindex="-1">Hand off a clear shopping list</h1><p class="lede">For cooks handing a list to a shopper outside their meal-planning app.</p><div class="hero-actions"><button class="primary" id="try-demo">Try it with sample data</button><span>Opens a ready-to-send pasta list.</span></div>${facts()}</div><figure class="hero-art"><img src="/assets/blueprint-handoff.webp" width="1200" height="800" fetchpriority="high" decoding="async" alt="A drafted recipe list transfers from a phone-shaped sheet to a paper checklist."/><figcaption>Pasted ingredients become a handoff card.</figcaption></figure></section>
+  <section class="app-section" aria-labelledby="builder-title"><div class="section-head"><h2 id="builder-title">Paste ingredients or start a list</h2><p>Paste one ingredient per line. We keep uncertain quantities visible.</p></div>${builder()}</section>
+  <section id="how" class="how" aria-labelledby="how-title"><h2 id="how-title">How it works</h2><ol><li><b>Paste</b><span>Paste ingredient lines into the list.</span></li><li><b>Check</b><span>Review units and produce counts before sending.</span></li><li><b>Hand off</b><span>Print, copy, scan, or save a local file.</span></li></ol></section>
   <section class="privacy-note" aria-labelledby="privacy-title"><div><h2 id="privacy-title">Your list stays on this device</h2></div><p>There are no accounts or cloud lists. QR codes contain only item names and quantities. Notes never go into a QR code.</p></section>
 </main>`; }
-function builder() {
+function builder(handoffFirst = false) {
   const incomplete = list.items.filter(i => !i.done); const visible = showDone ? list.items.filter(i => i.done) : incomplete; const groups = [...new Set(visible.map(i => i.category))];
   const warning = visible.filter(i => ['each','bunch','clove','can','pack'].includes(i.unit) || (i.amount !== null && !i.unit)).length;
-  return `<div class="workbench"><section class="input-sheet" aria-labelledby="paste-title"><h3 id="paste-title">Ingredient source</h3><label for="paste">Paste ingredients</label><textarea id="paste" rows="7" aria-describedby="paste-error" placeholder="500 g spaghetti&#10;2 tbsp olive oil&#10;1 lemon"></textarea><p class="form-error" id="paste-error" aria-live="polite"></p><div class="input-actions"><button class="secondary" id="add-pasted">Add ingredients</button><button class="text-button" id="clear-list">Clear list</button></div><form id="add-form" class="quick-add" novalidate><h3>Add one item</h3><label><span>Amount</span><input name="amount" type="number" min="0" step="any" inputmode="decimal" aria-describedby="amount-error" /></label><label><span>Unit</span><input name="unit" placeholder="g, each" /></label><label class="wide"><span>Item</span><input name="name" required aria-describedby="name-error" placeholder="e.g. pasta" /></label><p class="form-error wide" id="amount-error" aria-live="polite"></p><p class="form-error wide" id="name-error" aria-live="polite"></p><button class="secondary wide" type="submit">Add item</button></form><label class="file-import" for="import-file"><span>Or open a local handoff file</span><input id="import-file" type="file" accept="application/json,.json" /></label><p class="local-note">Saved only in this browser${demo ? '; demo data uses a separate space' : ''}.</p></section>
-  <section class="handoff-sheet" aria-labelledby="card-title"><div class="sheet-top"><div><p class="eyebrow">SHOPPER COPY</p><input aria-label="List title" id="list-title" value="${esc(list.title)}" /><p class="updated">${list.items.length} item${list.items.length === 1 ? '' : 's'} · ${incomplete.length} left</p></div><button class="icon-button" id="print" aria-label="Print shopping list" title="Print shopping list">Print shopping list <span aria-hidden="true">⌘P</span></button></div>
+  return `<div class="workbench${handoffFirst ? ' handoff-first' : ''}"><section class="input-sheet" aria-labelledby="paste-title"><h3 id="paste-title">Ingredient source</h3><label for="paste">Paste ingredients</label><textarea id="paste" rows="7" aria-describedby="paste-error" placeholder="500 g spaghetti&#10;2 tbsp olive oil&#10;1 lemon"></textarea><p class="form-error" id="paste-error" aria-live="polite"></p><div class="input-actions"><button class="secondary" id="add-pasted">Add ingredients</button><button class="text-button" id="clear-list">Clear list</button></div><form id="add-form" class="quick-add" novalidate><h3>Add one item</h3><label><span>Amount</span><input name="amount" type="number" min="0" step="any" inputmode="decimal" aria-describedby="amount-error" /></label><label><span>Unit</span><input name="unit" placeholder="g, each" /></label><label class="wide"><span>Item</span><input name="name" required aria-describedby="name-error" placeholder="e.g. pasta" /></label><p class="form-error wide" id="amount-error" aria-live="polite"></p><p class="form-error wide" id="name-error" aria-live="polite"></p><button class="secondary wide" type="submit">Add item</button></form><label class="file-import" for="import-file"><span>Or open a local handoff file</span><input id="import-file" type="file" accept="application/json,.json" /></label><p class="local-note">Saved only in this browser${demo ? '; demo data uses a separate space' : ''}.</p></section>
+  <section class="handoff-sheet" aria-labelledby="card-title"><h2 id="card-title" class="sr-only">Handoff card</h2><div class="sheet-top"><div><p class="eyebrow">SHOPPING LIST</p><input aria-label="List title" id="list-title" value="${esc(list.title)}" /><p class="updated">${list.items.length} item${list.items.length === 1 ? '' : 's'} · ${incomplete.length} left</p></div><button class="icon-button" id="print" aria-label="Print shopping list" title="Print shopping list">Print shopping list <span aria-hidden="true">⌘P</span></button></div>
   ${warning ? `<p class="warning" role="status"><b>CHECK:</b> ${warning} count or unmeasured item${warning === 1 ? '' : 's'} cannot be converted. Confirm the pack or produce size.</p>` : ''}
   <div class="checklist">${groups.length ? groups.map(group => `<section class="group"><h3>${group}</h3><ul>${visible.filter(i => i.category === group).map(item => `<li><label><input type="checkbox" data-done="${item.id}" ${item.done ? 'checked' : ''}/><span class="tick" aria-hidden="true"></span><span class="amount">${esc([number(item.amount), item.unit].filter(Boolean).join(' '))}</span><span>${esc(item.name)}</span></label><button class="remove" data-remove="${item.id}" aria-label="Remove ${esc(item.name)}">×</button></li>`).join('')}</ul></section>`).join('') : `<div class="empty"><p>${showDone ? 'No checked items to review.' : 'Your handoff card will appear here.'}</p><p>${showDone ? 'Return to items left to shop.' : 'Paste ingredients or add an item above.'}</p></div>`}</div>
   ${list.items.some(i => i.done) ? `<button class="text-button done-toggle" id="show-done" aria-pressed="${showDone}">${showDone ? 'Show items left to shop' : `Show ${list.items.filter(i => i.done).length} checked item${list.items.filter(i => i.done).length === 1 ? '' : 's'}`}</button>` : ''}
   <label class="note-label" for="note">Note for the shopper <span>(not in QR)</span></label><textarea id="note" rows="2" placeholder="Optional pickup note">${esc(list.note)}</textarea>${list.note ? `<p class="print-note"><b>Note for the shopper:</b> ${esc(list.note)}</p>` : ''}
   <div class="export-row"><button class="primary" id="copy-text">Copy plain text</button><button class="secondary" id="qr">${showQr ? 'Hide QR' : 'Make QR code'}</button><button class="secondary" id="save-file">Save local file</button></div>${showQr ? `<div class="qr-panel"><canvas id="qr-canvas" width="240" height="240" aria-label="QR code for the shopping list"></canvas><p>Scan to open this list in a browser. The code includes item lines only.</p><a id="qr-link" href="${esc(handoffUrl())}">Open the recipient view</a></div>` : ''}</section></div>`;
 }
+function demoPage() { return `<main id="main" tabindex="-1" class="demo-page"><section class="demo-intro" aria-labelledby="page-title"><h1 id="page-title" tabindex="-1">Wednesday pasta night handoff</h1><p class="lede">Check the sample list, then copy, print, scan, or save it.</p></section>${builder(true)}</main>`; }
 function receivedHandoff() {
   const shared = decodePayload();
-  if (!shared) return `<main id="main" tabindex="-1" class="legal received"><p class="eyebrow">HANDOFF / ERROR</p><h1 id="page-title" tabindex="-1">This handoff link is incomplete</h1><p>The list data is missing or unreadable. Ask the sender to make a new QR code.</p><p><a href="/" data-route>Make a new shopping list</a></p></main>`;
+  if (!shared) return `<main id="main" tabindex="-1" class="legal received"><h1 id="page-title" tabindex="-1">This handoff link is incomplete</h1><p>The list data is missing or unreadable. Ask the sender to make a new QR code.</p><p><a href="/" data-route>Make a new shopping list</a></p></main>`;
   const groups = [...new Set(shared.map(item => item.category))];
-  return `<main id="main" tabindex="-1" class="received"><p class="eyebrow">SHOPPER COPY / RECEIVED</p><h1 id="page-title" tabindex="-1">Shop this handed-off list</h1><p class="lede">Check each item as you shop. This copy is not saved in the browser.</p><section class="handoff-sheet" aria-label="Received shopping list"><p class="updated">${shared.length} item${shared.length === 1 ? '' : 's'} received</p><div class="checklist">${groups.map(group => `<section class="group"><h2>${esc(group)}</h2><ul>${shared.filter(item => item.category === group).map(item => `<li><label><input type="checkbox" /><span class="tick" aria-hidden="true"></span><span class="amount">${esc([number(item.amount), item.unit].filter(Boolean).join(' '))}</span><span>${esc(item.name)}</span></label></li>`).join('')}</ul></section>`).join('')}</div><button class="secondary" id="print">Print this list</button></section><p><a href="/" data-route>Make your own shopping list</a></p></main>`;
+  return `<main id="main" tabindex="-1" class="received"><p class="eyebrow">RECEIVED SHOPPING LIST</p><h1 id="page-title" tabindex="-1">Shop this handed-off list</h1><p class="lede">Check each item as you shop. This copy is not saved in the browser.</p><section class="handoff-sheet" aria-label="Received shopping list"><p class="updated">${shared.length} item${shared.length === 1 ? '' : 's'} received</p><div class="checklist">${groups.map(group => `<section class="group"><h2>${esc(group)}</h2><ul>${shared.filter(item => item.category === group).map(item => `<li><label><input type="checkbox" /><span class="tick" aria-hidden="true"></span><span class="amount">${esc([number(item.amount), item.unit].filter(Boolean).join(' '))}</span><span>${esc(item.name)}</span></label></li>`).join('')}</ul></section>`).join('')}</div><button class="secondary" id="print">Print this list</button></section><p><a href="/" data-route>Make your own shopping list</a></p></main>`;
 }
-function legal(kind: 'privacy' | 'terms') { const title = kind === 'privacy' ? 'Privacy is the default' : 'Simple terms for a local tool'; const paragraphs = kind === 'privacy' ? ['Shopping List Handoff stores your list in this browser only. It does not send ingredient lists, notes, or device identifiers to a server.', 'A QR code embeds a compact list of item names, quantities, and units. It never includes your note. Anyone who scans the code can read those list items.', 'You can clear browser storage in your browser settings or use Clear list. Demo data is stored in a separate browser key and is discarded when you reset it.'] : ['Shopping List Handoff is a free local utility. Use it for ordinary shopping information and check the final list before sharing it.', 'The tool does not place orders, contact retailers, or provide live collaboration. A saved file and a QR code are copies you choose to share.', 'The software is provided as-is, without warranties.']; return `<main id="main" tabindex="-1" class="legal"><p class="eyebrow">${kind.toUpperCase()} / 01</p><h1 id="page-title" tabindex="-1">${title}</h1>${paragraphs.map(p => `<p>${p}</p>`).join('')}<p><a href="/" data-route>Return to your list</a></p></main>`; }
+function legal(kind: 'privacy' | 'terms') {
+  const title = kind === 'privacy' ? 'How Shopping List Handoff stores data' : 'Terms for Shopping List Handoff';
+  const paragraphs = kind === 'privacy'
+    ? ['Shopping List Handoff stores your list in this browser only. It does not send ingredient lists, notes, or device identifiers to a server.', 'A QR code embeds a compact list of item names, quantities, and units. It never includes your note. Anyone who scans the code can read those list items.', 'You can clear browser storage in your browser settings or use Clear list. Demo data is stored separately from real lists and is discarded when you reset it.']
+    : ['Shopping List Handoff is free to use. Use it for ordinary shopping information and check the final list before sharing it.', 'The tool does not place orders, contact retailers, or provide live collaboration. A saved file and a QR code are copies you choose to share.', 'The software is provided as-is, without warranties.'];
+  return `<main id="main" tabindex="-1" class="legal"><h1 id="page-title" tabindex="-1">${title}</h1>${paragraphs.map(p => `<p>${p}</p>`).join('')}<p><a href="/" data-route>Return to your list</a></p></main>`;
+}
 type RouteMetadata = { title: string; description: string };
 function setMetadata(metadata: RouteMetadata, route: string) {
   document.title = metadata.title;
@@ -184,14 +239,14 @@ function render() {
   const metadata = route === '/privacy'
     ? { title: 'Privacy — Shopping List Handoff', description: 'Read how Shopping List Handoff keeps ingredient lists in this browser.' }
     : route === '/terms'
-      ? { title: 'Terms — Shopping List Handoff', description: 'Read the simple terms for this free local shopping-list tool.' }
-      : isDemo
-        ? { title: 'Demo — Shopping List Handoff', description: 'Try a ready handoff card with sample pasta-night ingredients.' }
+      ? { title: 'Terms — Shopping List Handoff', description: 'Read the terms for this free local shopping-list tool.' }
+    : isDemo
+        ? { title: 'Demo — Shopping List Handoff', description: 'Open a sample pasta-night handoff card and check the item list.' }
         : isHandoff
           ? { title: 'Shared list — Shopping List Handoff', description: 'Check a shared shopping list in this browser without saving it.' }
-          : { title: 'Shopping List Handoff — Clear shopping lists', description: 'Turn pasted ingredients into a clear handoff card another shopper can use.' };
+          : { title: 'Shopping List Handoff — Hand off a shopping list', description: 'Turn pasted ingredients into a handoff card another shopper can use.' };
   setMetadata(metadata, isDemo ? '/demo' : route);
-  app.innerHTML = `${header()}${demo ? `<aside class="demo-banner" aria-label="Demo mode"><span><b>Demo</b> — sample data, nothing is saved.</span><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></aside>` : ''}${isHandoff ? receivedHandoff() : isLegal ? legal(route.slice(1) as 'privacy' | 'terms') : landing()}${footer()}<div id="route-announcement" class="sr-only" aria-live="polite"></div>${removedItem ? `<div class="undo-notice" role="status" aria-live="polite"><span>${esc(removedItem.item.name)} removed from this list.</span><button class="secondary" id="undo-remove">Undo removal</button></div>` : ''}<div class="toast" role="status" aria-live="polite">${esc(toast)}</div>`;
+  app.innerHTML = `${header()}${isDemo ? `<aside class="demo-banner" aria-label="Demo mode"><span><b>Demo</b> — sample data, nothing is saved.</span><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></aside>` : ''}${isHandoff ? receivedHandoff() : isLegal ? legal(route.slice(1) as 'privacy' | 'terms') : isDemo ? demoPage() : landing()}${footer()}<div id="route-announcement" class="sr-only" aria-live="polite"></div>${removedItem ? `<div class="undo-notice" role="status" aria-live="polite"><span>${esc(removedItem.item.name)} removed from this list.</span><button class="secondary" id="undo-remove">Undo removal</button></div>` : ''}<div class="toast" role="status" aria-live="polite">${esc(toast)}</div>`;
   bind(); if (showQr) makeQr(); if (pendingFocus) { const target = pendingFocus; pendingFocus = ''; requestAnimationFrame(() => document.querySelector<HTMLElement>(target)?.focus()); }
 }
 function bind() {

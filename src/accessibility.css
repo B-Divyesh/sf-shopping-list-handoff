@@ -8,3 +8,20 @@
 #copy-text:hover {
   background: #7e251f;
 }
+
+/* Keep long list names readable instead of trapping them in a one-line input. */
+.sheet-top {
+  flex-wrap: wrap;
+}
+
+.sheet-top > div {
+  min-width: 100%;
+}
+
+.sheet-top .icon-button {
+  margin-left: auto;
+}
+
+.sheet-top #list-title {
+  font-size: clamp(1.3rem, 2vw, 1.6rem);
+}
