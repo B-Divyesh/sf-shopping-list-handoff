@@ -28,6 +28,20 @@
     "sandbox": "demo list with a shopper note"
   },
   {
+    "id": "local-file-roundtrip",
+    "claim": "A saved local handoff file opens as a shopping list on this device.",
+    "where": "handoff card button, README",
+    "test": "npm test -- --grep @claim:local-file-roundtrip",
+    "sandbox": "save the demo handoff file, then import it into a fresh real list"
+  },
+  {
+    "id": "print-sheet",
+    "claim": "Print opens the browser print dialog for the shopping sheet.",
+    "where": "handoff card print button, README",
+    "test": "npm test -- --grep @claim:print-sheet",
+    "sandbox": "demo handoff card with a browser print spy"
+  },
+  {
     "id": "qr-recipient",
     "claim": "Scanning a QR code opens a readable shopping list in a browser.",
     "where": "QR panel, README",
@@ -42,11 +56,32 @@
     "sandbox": "demo list with a sensitive-looking title and shopper note"
   },
   {
+    "id": "recipient-checkable",
+    "claim": "A recipient can check items in a shared list without saving it.",
+    "where": "recipient handoff page",
+    "test": "npm test -- --grep @claim:recipient-checkable",
+    "sandbox": "open a demo QR URL in a fresh browser context and check an item"
+  },
+  {
+    "id": "quantity-normalization",
+    "claim": "Combines compatible quantities and keeps uncertain count units visible for review.",
+    "where": "ingredient input, handoff warning, README",
+    "test": "npm test -- --grep @claim:quantity-normalization",
+    "sandbox": "paste compatible metric quantities and repeated count units"
+  },
+  {
     "id": "local-only",
-    "claim": "Stores the demo list in a separate browser key and makes no third-party requests.",
-    "where": "landing facts, demo banner, privacy page",
+    "claim": "Stores the demo list in a browser key separate from real lists.",
+    "where": "demo banner, privacy page, README",
     "test": "npm test -- --grep @claim:local-only",
     "sandbox": "fresh browser context at /demo"
+  },
+  {
+    "id": "local-data-private",
+    "claim": "Does not send ingredient lists, notes, or device identifiers to a server.",
+    "where": "privacy page, README",
+    "test": "npm test -- --grep @claim:local-data-private",
+    "sandbox": "full populated demo flow while recording every browser request URL and body"
   },
   {
     "id": "offline-reload",

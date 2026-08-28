@@ -5,7 +5,7 @@ not use your meal-planning app.
 
 It is for household cooks who need to hand a precise list to another shopper.
 Paste ingredient lines and check the quantities. Then print, copy, make a QR
-code, or save a local handoff file. The QR code opens a list in any browser.
+code, or save a local handoff file. The QR code opens a list in a browser.
 The working list stays in your browser. No account is needed.
 
 Live: https://shopping-list-handoff.sociobot.in
@@ -15,6 +15,10 @@ Live: https://shopping-list-handoff.sociobot.in
 1. Paste one ingredient per line, such as `500 g spaghetti` or `1 lemon`.
 2. Check the handoff card, especially count-based produce and packs.
 3. Use **Copy plain text**, **Make QR code**, **Save local file**, or print.
+
+Compatible metric and volume quantities combine into one line. Equal count
+units, such as two bunches of basil, combine too. Counts and unmeasured items
+stay visible with a review warning rather than guessing a size.
 
 Scanning a QR code opens a readable list in the browser. The item data stays in
 the URL fragment, which is not sent to the server. QR codes exclude the list

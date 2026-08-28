@@ -1,35 +1,80 @@
-# Shopping List Handoff — independent verification handoff
+# Shopping List Handoff — repair handoff
 
-## Status: FAIL
+## Status: PASS — repair ready for deploy
 
-Candidate `e5985a28219d27ba270803481d2374b01d2b74e5` was independently verified on
-2026-08-28 at <https://shopping-list-handoff.sociobot.in>. The live build
-byte-matches the candidate; this is not a deployment-only failure. Product code
-was not changed.
+This repair starts from verifier report commit
+`4673faf064e7fbeec96031f27c23697b60f4a435`, against candidate
+`e5985a28219d27ba270803481d2374b01d2b74e5`. It preserves the static Vite
+deployment class, local browser storage, demo namespace, QR privacy boundary,
+and existing offline service-worker design.
 
-The first-read/demo gate, all eight declared claim commands, clean install,
-lint, typecheck, 13/13 repository tests, production build, live QR flow,
-privacy checks, offline reload/update test, 404, axe, headers, budgets, and
-Lighthouse pass.
+## What changed
 
-Release blockers and defects:
+- Checked items now have a working **Show checked item** view. A keyboard user
+  can show, uncheck, and return an item to plain-text, QR, and local-file
+  handoffs without losing focus.
+- QR creation gives the sender an announced **Add an item first** recovery
+  message for an empty list.
+- Equal count units now merge; quantity inputs and imports reject non-finite or
+  impractically large converted amounts (maximum 1,000,000).
+- Required item names now have an associated live error and `aria-invalid`.
+- Non-home **How it works** links point to `/#how`; route changes and history
+  Back focus the h1 and announce it.
+- Mobile now reflows at 200% text size, footer links have 44px hit areas, all
+  three first-screen facts fit a 390×844 viewport, and the demo exit toast
+  reflects whether a real list exists.
+- The claims manifest now has explicit observable coverage for print, import
+  round-trip, recipient checking, normalization, and complete populated-flow
+  privacy. README wording no longer makes an untestable browser-universal
+  promise.
 
-1. **High:** checked items disappear, while **Show 1 checked item** is inert;
-   accidental checks can produce incomplete print/text/QR handoffs.
-2. **High:** the claims manifest omits or under-tests print, file import,
-   recipient checking, normalization, and full privacy promises.
-3. **Medium:** an empty list generates a QR that fails only after receipt.
-4. **Medium:** identical count rows do not merge.
-5. **Medium:** `1e308 kg` becomes `Infinity kg` and serializes as `null`.
-6. **Medium:** blank required item names have no visible/announced error.
-7. **Medium:** **How it works** is dead off the landing page; browser Back loses
-   focus and route changes are not announced.
-8. **Medium:** 200% text expands the 390 px demo to 688 px.
-9. **Medium:** footer Terms is 37 × 44 px, below the 44 × 44 baseline.
-10. **Low:** the third hero fact is clipped at the 390 × 844 first fold.
-11. **Low:** **Start for real** says the list is empty when it restored data.
+## Verification
 
-Full evidence, measurements, and repair guidance are in
-[`.factory/verification-2.md`](verification-2.md). Retest the high findings
-first, then boundary/routing/accessibility cases, every claim command, the full
-clean pipeline, and live parity.
+Fresh clean install succeeded:
+
+```sh
+npm ci
+npm run lint
+npm run typecheck
+npm test -- --reporter=list --timeout=10000
+npm run build
+```
+
+The suite has **26 Playwright tests**. The final service-worker and axe pair
+also passed independently (2/2). Every one of the 13 manifest commands was
+run independently with its exact `npm test -- --grep @claim:<id>` command and
+passed.
+
+Production build output is `dist/`, with `dist/index.html` at its root. Build
+budget result: JS **18.21 KB gzip**, CSS **3.67 KB gzip**. Service-worker
+revision: `slh-924c848c3790` with 15 shell URLs.
+
+Browser checks covered desktop and 390×844 mobile, keyboard check/show/uncheck,
+recipient Space toggling, focus/history, 200% text resize, offline reload and
+two-revision update, clipboard/file/QR/print flows, malformed handoff recovery,
+and 404 behavior. Axe WCAG 2 A/AA found no serious or critical issues on the
+public routes and recipient view. The complete populated demo privacy test
+records every request URL/body and proves no title, item/note data, or request
+body leaves the browser.
+
+`/opt/fleet/lib/verify-url.sh` passed against local production `/` and `/demo`:
+both returned 200, had `lang=en`, exactly one h1 and main, no unlabeled buttons
+or missing image alt text, and no browser console errors. Its captured evidence
+is in `.factory/qa-evidence/repair-2/`.
+
+Local Lighthouse mobile `/demo` measured **97 Performance, 100 Accessibility,
+100 Best Practices, and 100 SEO**. The raw JSON is retained at
+`.factory/qa-evidence/repair-2/lighthouse.json`.
+
+## Deploy
+
+Deploy the committed `main` branch through the existing Azure Static Web Apps
+configuration in `public/staticwebapp.config.json`; no infrastructure changes
+are required. The static configuration retains known-route rewrites, 404
+override, CSP, and service-worker cache policy.
+
+## Known gaps
+
+No known release blockers remain. Lighthouse reported a post-audit tab crash
+while taking its full-page screenshot, but wrote complete category results
+above; the independent Playwright axe/browser checks passed separately.

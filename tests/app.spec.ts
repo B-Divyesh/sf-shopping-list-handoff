@@ -35,6 +35,26 @@ test('saved local file leaves shopper notes out @claim:local-file-private', asyn
   expect(text).not.toContain('Gate code 1234');
 });
 
+test('a local handoff file imports into a real list @claim:local-file-roundtrip', async ({ page }) => {
+  await page.goto('/demo');
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save local file' }).click();
+  const path = await (await downloadPromise).path();
+  expect(path).toBeTruthy();
+  await page.goto('/');
+  await page.locator('#import-file').setInputFiles(path!);
+  await expect(page.getByLabel('List title')).toHaveValue('Wednesday pasta night');
+  await expect(page.getByText('spaghetti', { exact: true })).toBeVisible();
+  await expect(page.getByText('6 items opened from this device.')).toBeVisible();
+});
+
+test('print control invokes the browser print dialog @claim:print-sheet', async ({ page }) => {
+  await page.goto('/demo');
+  await page.evaluate(() => { window.print = () => document.body.dataset.printed = 'yes'; });
+  await page.getByRole('button', { name: 'Print shopping list' }).click();
+  await expect.poll(() => page.evaluate(() => document.body.dataset.printed)).toBe('yes');
+});
+
 test('QR opens a recipient list and excludes private fields @claim:qr-recipient @claim:qr-private', async ({ page, browser }) => {
   await page.goto('/demo');
   await page.getByLabel('List title').fill('Home address: 123 Oak Street');
@@ -66,6 +86,21 @@ test('QR opens a recipient list and excludes private fields @claim:qr-recipient 
   await recipient.close();
 });
 
+test('a recipient can check items without saving the shared list @claim:recipient-checkable', async ({ page, browser }) => {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Make QR code' }).click();
+  const href = await page.locator('#qr-link').getAttribute('href');
+  const recipient = await browser.newContext();
+  const recipientPage = await recipient.newPage();
+  await recipientPage.goto(href!);
+  const item = recipientPage.getByRole('checkbox').first();
+  await item.focus();
+  await item.press('Space');
+  await expect(item).toBeChecked();
+  expect(await recipientPage.evaluate(() => Object.keys(localStorage))).toEqual([]);
+  await recipient.close();
+});
+
 test('an unreadable handoff link gives a recovery path', async ({ page }) => {
   await page.goto('/handoff#list=not-valid-data');
   await expect(page.getByRole('heading', { name: 'This handoff link is incomplete' })).toBeVisible();
@@ -77,7 +112,7 @@ test('negative quantities are rejected with announced corrections', async ({ pag
   await page.getByRole('spinbutton', { name: 'Amount' }).fill('-2');
   await page.getByRole('textbox', { name: 'Item' }).fill('sugar');
   await page.getByRole('button', { name: 'Add item' }).click();
-  await expect(page.locator('#amount-error')).toHaveText('Amount must be zero or more. Check the number and try again.');
+  await expect(page.locator('#amount-error')).toHaveText('Amount must be between zero and 1,000,000. Check the number and try again.');
   await expect(page.getByRole('spinbutton', { name: 'Amount' })).toHaveAttribute('aria-invalid', 'true');
   await expect(page.getByText('sugar', { exact: true })).toHaveCount(0);
 
@@ -87,7 +122,67 @@ test('negative quantities are rejected with announced corrections', async ({ pag
   await expect(page.getByText('sugar', { exact: true })).toHaveCount(0);
 });
 
-test('demo has no third-party requests and uses a separate local key @claim:local-only', async ({ page }) => {
+test('blank item names get a visible announced error', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await expect(page.locator('#name-error')).toHaveText('Add an item name.');
+  await expect(page.getByRole('textbox', { name: 'Item' })).toHaveAttribute('aria-invalid', 'true');
+  await expect(page.getByRole('textbox', { name: 'Item' })).toBeFocused();
+});
+
+test('normalizes compatible quantities and keeps uncertain count units visible @claim:quantity-normalization', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('500 g rice\n0.5 kg rice\n1 bunch basil\n1 bunch basil');
+  await page.getByRole('button', { name: 'Add ingredients' }).click();
+  await expect(page.getByText('1 kg', { exact: true })).toBeVisible();
+  await expect(page.getByText('2 bunch', { exact: true })).toBeVisible();
+  await expect(page.locator('.warning')).toContainText('cannot be converted');
+});
+
+test('rejects an overflowing amount before it can be saved', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('spinbutton', { name: 'Amount' }).fill('1e308');
+  await page.getByRole('textbox', { name: 'Unit' }).fill('kg');
+  await page.getByRole('textbox', { name: 'Item' }).fill('boundary sugar');
+  await page.getByRole('button', { name: 'Add item' }).click();
+  await expect(page.locator('#amount-error')).toContainText('1,000,000');
+  await expect(page.getByText('Infinity kg', { exact: false })).toHaveCount(0);
+  await page.locator('#import-file').setInputFiles({ name: 'overflow.shopping-list.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ items: [{ amount: 1e308, unit: 'kg', name: 'imported sugar' }] })) });
+  await expect(page.getByText('That file has no readable shopping items. Check quantities and choose a handoff JSON file.')).toBeVisible();
+  await expect(page.getByText('imported sugar', { exact: true })).toHaveCount(0);
+});
+
+test('empty lists cannot create a broken QR handoff', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Make QR code' }).click();
+  await expect(page.getByText('Add an item first, then make a QR code.')).toBeVisible();
+  await expect(page.locator('#qr-canvas')).toHaveCount(0);
+});
+
+test('checked items can be restored and return to every handoff export', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/demo');
+  const item = page.getByRole('checkbox').first();
+  await item.focus();
+  await item.press('Space');
+  const toggle = page.getByRole('button', { name: 'Show 1 checked item' });
+  await expect(toggle).toBeFocused();
+  await toggle.press('Enter');
+  const restored = page.getByRole('checkbox').first();
+  await expect(restored).toBeChecked();
+  await restored.press('Space');
+  await expect(page.getByText('spaghetti', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Copy plain text' }).click();
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('spaghetti');
+  await page.getByRole('button', { name: 'Make QR code' }).click();
+  await expect(page.locator('#qr-link')).toHaveAttribute('href', /spaghetti|list=/);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save local file' }).click();
+  const exported = await (await download).createReadStream().then(async stream => { const chunks: Buffer[] = []; for await (const chunk of stream) chunks.push(chunk); return Buffer.concat(chunks).toString('utf8'); });
+  expect(exported).toContain('spaghetti');
+});
+
+test('demo storage is separate from real-list storage @claim:local-only', async ({ page }) => {
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
   await page.goto('/demo');
@@ -95,6 +190,23 @@ test('demo has no third-party requests and uses a separate local key @claim:loca
   expect(keys).toContain('slh:demo:list');
   expect(keys).not.toContain('slh:real:list');
   expect(requests.every(url => new URL(url).origin === 'http://127.0.0.1:4173')).toBeTruthy();
+});
+
+test('a complete populated handoff sends no list, note, or device data to a server @claim:local-data-private', async ({ page }) => {
+  const requests: { url: string; body: string | null }[] = [];
+  page.on('request', request => requests.push({ url: request.url(), body: request.postData() }));
+  await page.goto('/demo');
+  await page.getByLabel('List title').fill('Private household 17');
+  await page.getByLabel('List title').press('Tab');
+  await page.getByLabel(/Note for the shopper/).fill('Gate code 1234');
+  await page.getByLabel(/Note for the shopper/).press('Tab');
+  await page.getByRole('button', { name: 'Copy plain text' }).click();
+  await page.getByRole('button', { name: 'Make QR code' }).click();
+  await page.getByRole('button', { name: 'Save local file' }).click();
+  const observed = JSON.stringify(requests);
+  expect(observed).not.toContain('Private household 17');
+  expect(observed).not.toContain('Gate code 1234');
+  expect(requests.every(request => request.body === null && new URL(request.url).origin === 'http://127.0.0.1:4173')).toBeTruthy();
 });
 
 test('works offline after the first visit @claim:offline-reload', async ({ page, context }) => {
@@ -115,6 +227,49 @@ test('small screen remains usable and keyboard can add an item', async ({ page }
   await page.getByRole('textbox', { name: 'Item' }).fill('oats');
   await page.getByRole('textbox', { name: 'Item' }).press('Enter');
   await expect(page.getByText('oats', { exact: true })).toBeVisible();
+});
+
+test('the first mobile screen includes all three plain-language facts', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  for (const fact of await page.locator('.facts li').all()) {
+    const box = await fact.boundingBox();
+    expect(box?.y).toBeGreaterThanOrEqual(0);
+    expect((box?.y || 0) + (box?.height || 0)).toBeLessThanOrEqual(844);
+  }
+});
+
+test('start for real accurately acknowledges a saved real list', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Item' }).fill('oats');
+  await page.getByRole('textbox', { name: 'Item' }).press('Enter');
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await expect(page.getByText('Your saved real list is ready.')).toBeVisible();
+  await expect(page.getByText('oats', { exact: true })).toBeVisible();
+});
+
+test('routes announce their heading and restore focus with browser history', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Main navigation').getByRole('link', { name: 'Privacy' }).click();
+  await expect(page.getByRole('heading', { name: 'Privacy is the default' })).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Privacy is the default.');
+  await expect(page.getByRole('link', { name: 'How it works' })).toHaveAttribute('href', '/#how');
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'Hand off a clear shopping list' })).toBeFocused();
+  await expect(page.locator('#route-announcement')).toHaveText('Hand off a clear shopping list.');
+});
+
+test('mobile reflows at 200 percent text size and keeps all footer links touch-sized', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/demo');
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+  for (const link of await page.getByRole('contentinfo').getByRole('link').all()) {
+    const box = await link.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
 });
 
 test('mobile controls meet target size and checklist focus is visible', async ({ page }) => {
