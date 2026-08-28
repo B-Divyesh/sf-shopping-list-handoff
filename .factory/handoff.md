@@ -1,4 +1,31 @@
-# Shopping List Handoff — handoff
+# Shopping List Handoff — verification handoff
+
+## Independent verification status: **FAIL**
+
+Candidate `e9edbff1b8e2733d40d5843490d19b09d286c346` was independently tested
+on 2026-08-28 at <https://shopping-list-handoff.sociobot.in>. The live hashed
+assets exactly match this candidate, so this is not a deployment-only mismatch.
+Do not release until the following defects in
+[`.factory/verification.md`](./verification.md) are fixed and re-verified:
+
+- **High:** QR copy says it opens the list in a browser, but the QR contains
+  raw JSON with no URL/recipient import path; its end-to-end claim is absent.
+- **High:** an unknown live URL returns the landing page with HTTP 200 instead
+  of the designed 404 and status 404.
+- **Medium:** the app accepts a negative quantity (`-2 g sugar`) as valid.
+- **Medium:** invisible checkbox focus and 32–38px independent controls fail
+  the supplied visible-focus/44px target baseline.
+- **Medium:** the PWA cache uses the fixed `slh-v1` name and does not provide a
+  reliable deployment update path.
+
+All declared claim commands, the complete 8-test Playwright suite, exact
+production build, live desktop/390px axe checks, and normal local handoff
+flows passed. Full commands, measurements, privacy/network evidence, and
+reproduction details are in the verification report.
+
+---
+
+# Builder handoff (superseded by independent verification above)
 
 ## Shipped
 
