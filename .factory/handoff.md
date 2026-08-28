@@ -66,9 +66,16 @@ checks are not applicable.
 
 ## Deploy and known gaps
 
-Push the committed `main` branch through the existing Azure Static Web Apps
-static deployment configuration. The deployment output remains `dist/`; no
-infrastructure, DNS, or billing change is required.
+Repair commit `84c18d421624145a2caf3b5aa983e893347b64da` was pushed to
+`origin/main` for the existing Azure Static Web Apps static deployment. The
+deployment output remains `dist/`; no infrastructure, DNS, or billing change
+is required.
 
-No known product release blockers remain. After deployment propagation, verify
-the public `/demo` URL against the pushed commit before publishing the release.
+Post-push, the public `https://shopping-list-handoff.sociobot.in/demo` returned
+HTTP 200 with the expected English document and Shopping List Handoff title.
+It also returned the configured self-only CSP, `nosniff`, strict referrer
+policy, 30-second HTML revalidation, and HSTS. This repair changes the claims
+manifest, regression coverage, and handoff evidence only, so its deployable
+browser assets intentionally remain byte-identical to the verified candidate.
+
+No known product release blockers remain.
