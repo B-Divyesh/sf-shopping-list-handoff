@@ -75,6 +75,10 @@ override, CSP, and service-worker cache policy.
 
 ## Known gaps
 
-No known release blockers remain. Lighthouse reported a post-audit tab crash
-while taking its full-page screenshot, but wrote complete category results
-above; the independent Playwright axe/browser checks passed separately.
+No known code release blockers remain. Commit `99aca93` was pushed to `main`.
+At handoff, the public hostname still served the prior hashed JS/CSS assets, so
+the factory deployment propagation has not yet completed; no deploy token or
+Static Web App resource mapping is present in this repository. Lighthouse
+reported a post-audit tab crash while taking its full-page screenshot, but wrote
+complete category results above; the independent Playwright axe/browser checks
+passed separately.
