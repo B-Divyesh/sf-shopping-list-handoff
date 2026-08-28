@@ -1,84 +1,26 @@
-# Shopping List Handoff — repair handoff
+# Shopping List Handoff — verification 3 handoff
 
-## Status: PASS — repair ready for deploy
+## Status: FAIL — release blocked by claims compliance
 
-This repair starts from verifier report commit
-`4673faf064e7fbeec96031f27c23697b60f4a435`, against candidate
-`e5985a28219d27ba270803481d2374b01d2b74e5`. It preserves the static Vite
-deployment class, local browser storage, demo namespace, QR privacy boundary,
-and existing offline service-worker design.
+**Tested candidate:** `13450d2185a367fda112bc13f3219eb239657c3e`
 
-## What changed
+**Tested deployment:** <https://shopping-list-handoff.sociobot.in>
 
-- Checked items now have a working **Show checked item** view. A keyboard user
-  can show, uncheck, and return an item to plain-text, QR, and local-file
-  handoffs without losing focus.
-- QR creation gives the sender an announced **Add an item first** recovery
-  message for an empty list.
-- Equal count units now merge; quantity inputs and imports reject non-finite or
-  impractically large converted amounts (maximum 1,000,000).
-- Required item names now have an associated live error and `aria-invalid`.
-- Non-home **How it works** links point to `/#how`; route changes and history
-  Back focus the h1 and announce it.
-- Mobile now reflows at 200% text size, footer links have 44px hit areas, all
-  three first-screen facts fit a 390×844 viewport, and the demo exit toast
-  reflects whether a real list exists.
-- The claims manifest now has explicit observable coverage for print, import
-  round-trip, recipient checking, normalization, and complete populated-flow
-  privacy. README wording no longer makes an untestable browser-universal
-  promise.
+**Report:** `.factory/verification-3.md`
 
-## Verification
+No product code was changed during this independent verification.
 
-Fresh clean install succeeded:
+## What passed
 
-```sh
-npm ci
-npm run lint
-npm run typecheck
-npm test -- --reporter=list --timeout=10000
-npm run build
-```
+- Clean `npm ci`, lint, typecheck, production build, and all 26 Playwright tests passed. All 13 exact claim-test commands pass from the demo entry point.
+- The live deploy byte-matches the candidate's public artifacts.
+- First-read/demo, normal and recovery handoff flows, 390 px/mobile and keyboard use, reduced motion, axe serious/critical scans, privacy request logging, service-worker offline reload/update, response headers, cache policy, and bundle budgets passed.
+- Live Lighthouse mobile `/demo` recorded 100/100/100/100 (performance/accessibility/best-practices/SEO); the final screenshot stage crashed Chromium after results had been written.
 
-The suite has **26 Playwright tests**. The final service-worker and axe pair
-also passed independently (2/2). Every one of the 13 manifest commands was
-run independently with its exact `npm test -- --grep @claim:<id>` command and
-passed.
+## Release-blocking defect (High)
 
-Production build output is `dist/`, with `dist/index.html` at its root. Build
-budget result: JS **18.21 KB gzip**, CSS **3.67 KB gzip**. Service-worker
-revision: `slh-924c848c3790` with 15 shell URLs.
+The UI claims **“FREE”** and Terms calls it a **“free local utility,”** but `.factory/claims.json` has no price/free claim and no observable tagged test. The factory claims contract says this is a release blocker.
 
-Browser checks covered desktop and 390×844 mobile, keyboard check/show/uncheck,
-recipient Space toggling, focus/history, 200% text resize, offline reload and
-two-revision update, clipboard/file/QR/print flows, malformed handoff recovery,
-and 404 behavior. Axe WCAG 2 A/AA found no serious or critical issues on the
-public routes and recipient view. The complete populated demo privacy test
-records every request URL/body and proves no title, item/note data, or request
-body leaves the browser.
+## Next step
 
-`/opt/fleet/lib/verify-url.sh` passed against local production `/` and `/demo`:
-both returned 200, had `lang=en`, exactly one h1 and main, no unlabeled buttons
-or missing image alt text, and no browser console errors. Its captured evidence
-is in `.factory/qa-evidence/repair-2/`.
-
-Local Lighthouse mobile `/demo` measured **97 Performance, 100 Accessibility,
-100 Best Practices, and 100 SEO**. The raw JSON is retained at
-`.factory/qa-evidence/repair-2/lighthouse.json`.
-
-## Deploy
-
-Deploy the committed `main` branch through the existing Azure Static Web Apps
-configuration in `public/staticwebapp.config.json`; no infrastructure changes
-are required. The static configuration retains known-route rewrites, 404
-override, CSP, and service-worker cache policy.
-
-## Known gaps
-
-No known code release blockers remain. Commit `99aca93` was pushed to `main`.
-At handoff, the public hostname still served the prior hashed JS/CSS assets, so
-the factory deployment propagation has not yet completed; no deploy token or
-Static Web App resource mapping is present in this repository. Lighthouse
-reported a post-audit tab crash while taking its full-page screenshot, but wrote
-complete category results above; the independent Playwright axe/browser checks
-passed separately.
+Remove/narrow the price promise or add a `free-use` claim with an isolated demo test proving the end-to-end handoff has no payment/account gate. Re-run all declared claim commands and independent QA before release.
