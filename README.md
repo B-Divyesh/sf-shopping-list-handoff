@@ -4,9 +4,9 @@ Turn pasted recipe ingredients into a clear shopping list for someone who does
 not use your meal-planning app.
 
 It is for household cooks who need to hand a precise list to another shopper.
-Paste ingredient lines, check the quantities, then print, copy as plain text,
-make a private QR code, or save a local handoff file. The list stays in the
-browser on your device. No account is needed.
+Paste ingredient lines and check the quantities. Then print, copy, make a QR
+code, or save a local handoff file. The QR code opens a list in any browser.
+The working list stays in your browser. No account is needed.
 
 Live: https://shopping-list-handoff.sociobot.in
 
@@ -16,8 +16,9 @@ Live: https://shopping-list-handoff.sociobot.in
 2. Check the handoff card, especially count-based produce and packs.
 3. Use **Copy plain text**, **Make QR code**, **Save local file**, or print.
 
-QR codes contain ingredient lines only. They exclude the list title and shopper
-note. The local JSON handoff file excludes the shopper note too.
+Scanning a QR code opens a readable list in the browser. The item data stays in
+the URL fragment, which is not sent to the server. QR codes exclude the list
+title and shopper note. The local JSON handoff file excludes the note too.
 
 Try the isolated demo at `/demo` or use **Try it with sample data**. Demo data
 uses a different browser-storage key from real lists. The app works offline
@@ -28,6 +29,8 @@ after the first visit.
 ```sh
 npm install
 npm run dev
+npm run lint
+npm run typecheck
 npm test
 npm run build
 ```

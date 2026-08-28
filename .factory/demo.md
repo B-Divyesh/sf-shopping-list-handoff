@@ -11,3 +11,7 @@ empty real list.
 
 The shell and sample illustration are cached by the service worker after the
 first visit, so the demo can be reloaded offline.
+
+**Make QR code** encodes a `/handoff#list=…` URL. The fragment contains only
+item lines and never reaches the server. Opening that URL in a fresh browser
+shows a checkable recipient list without writing to localStorage.

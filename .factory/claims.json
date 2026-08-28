@@ -28,6 +28,13 @@
     "sandbox": "demo list with a shopper note"
   },
   {
+    "id": "qr-recipient",
+    "claim": "Scanning a QR code opens a readable shopping list in a browser.",
+    "where": "QR panel, README",
+    "test": "npm test -- --grep @claim:qr-recipient",
+    "sandbox": "decode the demo QR, open its URL in a fresh browser context, and verify the recipient list"
+  },
+  {
     "id": "qr-private",
     "claim": "QR handoff contains item lines, never the shopper note or list title.",
     "where": "privacy section, QR panel",

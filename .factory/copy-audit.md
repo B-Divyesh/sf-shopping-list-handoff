@@ -26,6 +26,14 @@ plain-words rules. No sentence exceeds 22 words. No banned wording appears.
 | There are no accounts or cloud lists. | 7 | Pass |
 | QR codes contain only item names and quantities. | 8 | Pass |
 | Notes never go into a QR code. | 7 | Pass |
+| Scan to open this list in a browser. | 8 | Pass |
+| The code includes item lines only. | 6 | Pass |
+| Shop this handed-off list | 5 | Pass |
+| Check each item as you shop. | 7 | Pass |
+| This copy is not saved in the browser. | 8 | Pass |
+| This handoff link is incomplete | 5 | Pass |
+| The list data is missing or unreadable. | 7 | Pass |
+| Ask the sender to make a new QR code. | 9 | Pass |
 
 ## Terminology
 
