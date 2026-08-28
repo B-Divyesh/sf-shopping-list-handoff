@@ -1,0 +1,2 @@
+{"performance":100,"accessibility":100,"best-practices":100,"seo":100}
+{"fcp":915.2495,"lcp":1215.2495,"cls":0,"tbt":0,"transfer":57777}

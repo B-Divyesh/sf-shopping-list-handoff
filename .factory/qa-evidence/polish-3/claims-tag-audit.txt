@@ -1,0 +1,16 @@
+sample-demo 1
+no-account 1
+free-use 1
+pasted-ingredients-to-card 1
+plain-text-export 1
+local-file-private 1
+local-file-roundtrip 1
+print-sheet 1
+qr-recipient 1
+qr-private 1
+recipient-checkable 1
+quantity-normalization 1
+local-only 1
+local-data-private 1
+site-data-clear 1
+offline-reload 1

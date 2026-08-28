@@ -1,0 +1,76 @@
+{
+  "root": {
+    "title": "Shopping List Handoff — Hand off a shopping list",
+    "headline": "Hand off a clear shopping list",
+    "audience": "For cooks handing a list to a shopper outside their meal-planning app.",
+    "hasOldOutcome": false
+  },
+  "demo": {
+    "url": "https://shopping-list-handoff.sociobot.in/demo",
+    "banner": 1,
+    "reset": 1,
+    "startReal": 1,
+    "heading": "Wednesday pasta night handoff",
+    "firstRows": [
+      {
+        "text": "title",
+        "top": 396.21875,
+        "bottom": 440.21875,
+        "inViewport": true
+      },
+      {
+        "text": "spaghetti",
+        "top": 684.8125,
+        "bottom": 703.8125,
+        "inViewport": true
+      },
+      {
+        "text": "olive oil",
+        "top": 729.8125,
+        "bottom": 748.8125,
+        "inViewport": true
+      }
+    ]
+  },
+  "units": {
+    "keptTbsp": 1,
+    "oldMl": 0
+  },
+  "demoQuery": {
+    "title": "Demo — Shopping List Handoff",
+    "banner": 1,
+    "reset": 1,
+    "startReal": 1,
+    "heading": "Wednesday pasta night handoff"
+  },
+  "history": {
+    "before": 1200,
+    "after": 1200,
+    "privacyHeading": "How Shopping List Handoff stores data",
+    "heading": "Hand off a clear shopping list",
+    "focused": "H1:Hand off a clear shopping list"
+  },
+  "/privacy": {
+    "title": "Privacy — Shopping List Handoff",
+    "heading": "How Shopping List Handoff stores data",
+    "description": "Read how Shopping List Handoff keeps ingredient lists in this browser.",
+    "og": "Privacy — Shopping List Handoff"
+  },
+  "/terms": {
+    "title": "Terms — Shopping List Handoff",
+    "heading": "Terms for Shopping List Handoff",
+    "description": "Read the terms for this free local shopping-list tool.",
+    "og": "Terms — Shopping List Handoff"
+  },
+  "notFound": {
+    "status": 404,
+    "heading": "This page was not found",
+    "wordmark": "Shopping List Handoff"
+  },
+  "consoleErrors": [],
+  "offlineDemo": {
+    "heading": "Wednesday pasta night handoff",
+    "spaghetti": 1
+  },
+  "pass": true
+}

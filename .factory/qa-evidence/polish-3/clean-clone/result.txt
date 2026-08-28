@@ -1,0 +1,1 @@
+clean clone and every declared claim command passed

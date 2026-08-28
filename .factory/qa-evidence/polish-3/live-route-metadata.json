@@ -1,0 +1,61 @@
+{
+  "404": {
+    "status": 404,
+    "title": "Page not found — Shopping List Handoff",
+    "h1": "This page was not found",
+    "description": "This shopping-list page is missing. Return to Shopping List Handoff.",
+    "canonical": "https://shopping-list-handoff.sociobot.in/404",
+    "ogTitle": "Page not found — Shopping List Handoff",
+    "ogDescription": "This shopping-list page is missing. Return to Shopping List Handoff.",
+    "twitterTitle": "Page not found — Shopping List Handoff",
+    "twitterDescription": "This shopping-list page is missing. Return to Shopping List Handoff.",
+    "icon": "/favicon.svg",
+    "apple": "/apple-touch-icon.png"
+  },
+  "/": {
+    "title": "Shopping List Handoff — Hand off a shopping list",
+    "description": "Turn pasted ingredients into a handoff card another shopper can use.",
+    "canonical": "https://shopping-list-handoff.sociobot.in/",
+    "ogTitle": "Shopping List Handoff — Hand off a shopping list",
+    "ogDescription": "Turn pasted ingredients into a handoff card another shopper can use.",
+    "twitterTitle": "Shopping List Handoff — Hand off a shopping list",
+    "twitterDescription": "Turn pasted ingredients into a handoff card another shopper can use."
+  },
+  "/demo": {
+    "title": "Demo — Shopping List Handoff",
+    "description": "Open a sample pasta-night handoff card and check the item list.",
+    "canonical": "https://shopping-list-handoff.sociobot.in/demo",
+    "ogTitle": "Demo — Shopping List Handoff",
+    "ogDescription": "Open a sample pasta-night handoff card and check the item list.",
+    "twitterTitle": "Demo — Shopping List Handoff",
+    "twitterDescription": "Open a sample pasta-night handoff card and check the item list."
+  },
+  "/privacy": {
+    "title": "Privacy — Shopping List Handoff",
+    "description": "Read how Shopping List Handoff keeps ingredient lists in this browser.",
+    "canonical": "https://shopping-list-handoff.sociobot.in/privacy",
+    "ogTitle": "Privacy — Shopping List Handoff",
+    "ogDescription": "Read how Shopping List Handoff keeps ingredient lists in this browser.",
+    "twitterTitle": "Privacy — Shopping List Handoff",
+    "twitterDescription": "Read how Shopping List Handoff keeps ingredient lists in this browser."
+  },
+  "/terms": {
+    "title": "Terms — Shopping List Handoff",
+    "description": "Read the terms for this free local shopping-list tool.",
+    "canonical": "https://shopping-list-handoff.sociobot.in/terms",
+    "ogTitle": "Terms — Shopping List Handoff",
+    "ogDescription": "Read the terms for this free local shopping-list tool.",
+    "twitterTitle": "Terms — Shopping List Handoff",
+    "twitterDescription": "Read the terms for this free local shopping-list tool."
+  },
+  "/handoff#list=not-valid-data": {
+    "title": "Shared list — Shopping List Handoff",
+    "description": "Check a shared shopping list in this browser without saving it.",
+    "canonical": "https://shopping-list-handoff.sociobot.in/handoff",
+    "ogTitle": "Shared list — Shopping List Handoff",
+    "ogDescription": "Check a shared shopping list in this browser without saving it.",
+    "twitterTitle": "Shared list — Shopping List Handoff",
+    "twitterDescription": "Check a shared shopping list in this browser without saving it."
+  },
+  "pass": true
+}

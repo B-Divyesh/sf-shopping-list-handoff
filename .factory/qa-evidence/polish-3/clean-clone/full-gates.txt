@@ -1,0 +1,82 @@
+
+added 137 packages, and audited 138 packages in 2s
+
+36 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+> shopping-list-handoff@1.0.0 lint
+> eslint src tests *.config.ts
+
+
+> shopping-list-handoff@1.0.0 typecheck
+> tsc --noEmit
+
+
+> shopping-list-handoff@1.0.0 test
+> playwright test --reporter=list
+
+[WebServer] (node:5707) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:5749) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 32 tests using 1 worker
+
+(node:5761) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5761) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 tests/app.spec.ts:8:1 › one click opens an in-viewport sample handoff card without an account @claim:sample-demo @claim:no-account (373ms)
+  ✓   2 tests/app.spec.ts:24:1 › the direct demo query opens the isolated sample with its controls (215ms)
+  ✓   3 tests/app.spec.ts:35:1 › a demo handoff has no payment or account gate @claim:free-use (478ms)
+  ✓   4 tests/app.spec.ts:62:1 › pasted ingredients appear as named, quantified lines on the handoff card @claim:pasted-ingredients-to-card (353ms)
+  ✓   5 tests/app.spec.ts:73:1 › paste normalizes a recipe list and plain text copies it @claim:plain-text-export (311ms)
+  ✓   6 tests/app.spec.ts:83:1 › saved local file leaves shopper notes out @claim:local-file-private (628ms)
+  ✓   7 tests/app.spec.ts:95:1 › a local handoff file imports into a real list @claim:local-file-roundtrip (328ms)
+  ✓   8 tests/app.spec.ts:108:1 › print control invokes the browser print dialog and includes the shopper note @claim:print-sheet (295ms)
+  ✓   9 tests/app.spec.ts:121:1 › routes set their own title, canonical URL, and share metadata (499ms)
+  ✓  10 tests/app.spec.ts:141:1 › QR opens a recipient list and excludes private fields @claim:qr-recipient @claim:qr-private (2.5s)
+  ✓  11 tests/app.spec.ts:172:1 › a recipient can check items without saving the shared list @claim:recipient-checkable (462ms)
+  ✓  12 tests/app.spec.ts:187:1 › an unreadable handoff link gives a recovery path (126ms)
+  ✓  13 tests/app.spec.ts:193:1 › negative quantities are rejected with announced corrections (1.6s)
+  ✓  14 tests/app.spec.ts:208:1 › blank item names get a visible announced error (208ms)
+  ✓  15 tests/app.spec.ts:216:1 › normalizes compatible quantities and keeps uncertain count units visible @claim:quantity-normalization (609ms)
+  ✓  16 tests/app.spec.ts:228:1 › rejects an overflowing amount before it can be saved (1.7s)
+  ✓  17 tests/app.spec.ts:241:1 › empty lists cannot create a broken QR handoff (321ms)
+  ✓  18 tests/app.spec.ts:248:1 › checked items can be restored and return to every handoff export (833ms)
+  ✓  19 tests/app.spec.ts:271:1 › removing an item is undoable, announced, persisted, and returns keyboard focus (368ms)
+  ✓  20 tests/app.spec.ts:288:1 › demo storage is separate from real-list storage @claim:local-only (152ms)
+  ✓  21 tests/app.spec.ts:298:1 › a complete populated handoff sends no list, note, or device data to a server @claim:local-data-private (805ms)
+  ✓  22 tests/app.spec.ts:315:1 › clearing browser site data removes saved real and demo lists @claim:site-data-clear (417ms)
+  ✓  23 tests/app.spec.ts:331:1 › works offline after the first visit @claim:offline-reload (285ms)
+  ✓  24 tests/app.spec.ts:341:1 › small screen remains usable and keyboard can add an item (294ms)
+  ✓  25 tests/app.spec.ts:351:1 › the first mobile screen includes all three plain-language facts (216ms)
+  ✓  26 tests/app.spec.ts:361:1 › start for real accurately acknowledges a saved real list (1.8s)
+  ✓  27 tests/app.spec.ts:371:1 › routes announce their heading and restore focus with browser history (2.1s)
+  ✓  28 tests/app.spec.ts:385:1 › mobile reflows at 200 percent text size and keeps all footer links touch-sized (269ms)
+  ✓  29 tests/app.spec.ts:397:1 › mobile controls meet target size and checklist focus is visible (242ms)
+  ✓  30 tests/app.spec.ts:417:1 › unknown paths return the designed HTTP 404 (116ms)
+  ✓  31 tests/app.spec.ts:437:1 › a new service-worker revision replaces the offline shell (1.2s)
+  ✓  32 tests/app.spec.ts:481:1 › public routes have no serious accessibility violations or console errors (3.0s)
+
+  32 passed (29.3s)
+
+> shopping-list-handoff@1.0.0 build
+> npm run typecheck && vite build && node scripts/service-worker.mjs
+
+
+> shopping-list-handoff@1.0.0 typecheck
+> tsc --noEmit
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 55 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  1.61 kB │ gzip:  0.56 kB
+dist/assets/index-CAnhpgiv.css  13.88 kB │ gzip:  3.97 kB
+dist/assets/index-CBAFGgxt.js   49.81 kB │ gzip: 18.73 kB
+✓ built in 378ms
+service worker 5a781426d63f: 15 shell URLs

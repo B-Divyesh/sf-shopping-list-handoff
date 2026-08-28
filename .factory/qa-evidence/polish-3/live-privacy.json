@@ -1,0 +1,21 @@
+{
+  "requests": [
+    {
+      "url": "https://shopping-list-handoff.sociobot.in/demo",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "url": "https://shopping-list-handoff.sociobot.in/assets/index-CBAFGgxt.js",
+      "method": "GET",
+      "body": null
+    },
+    {
+      "url": "https://shopping-list-handoff.sociobot.in/assets/index-CAnhpgiv.css",
+      "method": "GET",
+      "body": null
+    }
+  ],
+  "containsPrivate": false,
+  "onlySameOriginGet": true
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "route": "/",
+    "seriousOrCritical": [],
+    "allViolations": []
+  },
+  {
+    "route": "/demo",
+    "seriousOrCritical": [],
+    "allViolations": []
+  },
+  {
+    "route": "/privacy",
+    "seriousOrCritical": [],
+    "allViolations": []
+  },
+  {
+    "route": "/terms",
+    "seriousOrCritical": [],
+    "allViolations": []
+  },
+  {
+    "route": "/handoff",
+    "seriousOrCritical": [],
+    "allViolations": []
+  },
+  {
+    "route": "/missing-polish-3",
+    "seriousOrCritical": [],
+    "allViolations": []
+  }
+]
