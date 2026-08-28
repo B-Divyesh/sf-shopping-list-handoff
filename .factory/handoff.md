@@ -56,7 +56,9 @@ Build output: `assets/index-D2p86BJz.js` is **18.38 KB gzip**;
 `slh-e67a61b07a6e` with **15** precached shell URLs. These remain within the
 static-web budgets. The last independent live Lighthouse run recorded 100/100
 Performance and Accessibility; this repair did not add external resources or
-meaningfully increase the initial bundle.
+meaningfully increase the initial bundle. A fresh local Lighthouse invocation
+could not complete because its supplied Chromium tab crashed; the Playwright
+and `verify-url.sh` browser checks completed successfully.
 
 ## Run and deploy
 
@@ -76,4 +78,5 @@ designed `/404.html` response override with HTTP 404.
 No product gaps are known. After deployment, verify byte parity and the live
 404 response at `https://shopping-list-handoff.sociobot.in/missing`, then repeat
 the live offline-update and mobile Lighthouse checks as part of deployment
-propagation.
+propagation; the latter is also needed to replace the local Chromium-crash
+Lighthouse attempt with a fresh score.
