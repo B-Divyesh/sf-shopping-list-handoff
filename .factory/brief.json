@@ -1,0 +1,7 @@
+{
+  "slug": "shopping-list-handoff",
+  "title": "Shopping List Handoff",
+  "artifact_class": "static-web",
+  "smallest_useful_product": "Static local web page that turns pasted ingredients or a neutral recipe bundle into a concise, unit-normalized, checkable handoff card with print, plain-text, QR, and expiration-free local file options.",
+  "constraints": "No cloud storage by default; QR payloads must not expose household addresses or sensitive notes; unit conversion needs clear warnings for ambiguous produce quantities."
+}

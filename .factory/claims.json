@@ -1,0 +1,51 @@
+[
+  {
+    "id": "sample-demo",
+    "claim": "Try it with sample data opens a ready handoff card.",
+    "where": "landing hero",
+    "test": "npm test -- --grep @claim:sample-demo",
+    "sandbox": "fresh browser context at /demo"
+  },
+  {
+    "id": "no-account",
+    "claim": "No account is needed to open and use a handoff card.",
+    "where": "landing facts, README",
+    "test": "npm test -- --grep @claim:no-account",
+    "sandbox": "fresh browser context at /demo"
+  },
+  {
+    "id": "plain-text-export",
+    "claim": "Copies the shopper list as plain text.",
+    "where": "handoff card button",
+    "test": "npm test -- --grep @claim:plain-text-export",
+    "sandbox": "demo list with pasted ingredient lines"
+  },
+  {
+    "id": "local-file-private",
+    "claim": "Saves a local handoff file without shopper notes.",
+    "where": "handoff card button",
+    "test": "npm test -- --grep @claim:local-file-private",
+    "sandbox": "demo list with a shopper note"
+  },
+  {
+    "id": "qr-private",
+    "claim": "QR handoff contains item lines, never the shopper note or list title.",
+    "where": "privacy section, QR panel",
+    "test": "npm test -- --grep @claim:qr-private",
+    "sandbox": "demo list with a sensitive-looking title and shopper note"
+  },
+  {
+    "id": "local-only",
+    "claim": "Stores the demo list in a separate browser key and makes no third-party requests.",
+    "where": "landing facts, demo banner, privacy page",
+    "test": "npm test -- --grep @claim:local-only",
+    "sandbox": "fresh browser context at /demo"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit.",
+    "where": "landing facts, README",
+    "test": "npm test -- --grep @claim:offline-reload",
+    "sandbox": "fresh context visits /demo then goes offline and reloads"
+  }
+]
