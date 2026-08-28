@@ -1,81 +1,64 @@
-# Shopping List Handoff — repair handoff
+# Shopping List Handoff — independent verification handoff
 
-## Status: PASS — ready for static deployment
+## Status: FAIL — do not release candidate 8cf8a0d
 
-This repair starts from independent verifier report commit
-`9291d14155e26713149cf76c1a43b490fbfbb30f`, which tested candidate
-`13450d2185a367fda112bc13f3219eb239657c3e`.
+Candidate `8cf8a0dd5801c69428b714a761858d6b8117d713` was independently tested on
+2026-08-28 at <https://shopping-list-handoff.sociobot.in>. The deployment
+byte-matches the candidate and the earlier deployment-only concern is resolved.
+Product code was not modified.
 
-## Release-blocking repair
+The full evidence and defect detail are in
+[`.factory/verification-4.md`](verification-4.md).
 
-The verifier found one High release blocker: the landing fact `FREE` and the
-Terms phrase “free local utility” were visitor-facing price promises without a
-claim or observable regression test.
+## What passed
 
-The promise is accurate and remains. `.factory/claims.json` now declares
-`free-use`: “Free to use: a demo handoff has no payment or account gate.” Its
-exact command is:
+- Cold first-read and one-click sample demo gate.
+- All 14 exact commands in `.factory/claims.json` after `npm ci`.
+- `npm run lint`, `npm run typecheck`, all 27 Playwright tests, and
+  `npm run build`.
+- Live normal, boundary, invalid-input, recovery, copy, QR recipient, private
+  local file, import, and demo-isolation flows.
+- Live artifact parity, privacy request log, response security headers,
+  immutable asset caching, 304 revalidation, offline reload, and worker cache
+  revision behavior.
+- Desktop and 390 px mobile, keyboard operation, visible focus, 200% text
+  reflow, reduced motion, all 44 px targets, and live axe scans with no
+  violations.
+- Mobile Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices,
+  100 SEO; LCP 1,307 ms, TBT 90 ms, CLS 0.
+
+Build output is `dist/`. JavaScript is 18.21 KB gzip, CSS is 3.67 KB gzip, the
+hero is 33,426 bytes, and the generated offline cache is
+`slh-924c848c3790` with 15 shell URLs.
+
+## Release blockers and gaps
+
+1. **High:** print media hides **Note for the shopper**. The sample buyer
+   instruction is silently absent from the printed handoff even though the UI
+   warns only that the note is excluded from QR. Render it in print and test
+   print contents.
+2. **Medium:** **Remove item** permanently writes the deletion with no Undo or
+   confirmation, no announcement, and focus loss to `<body>`. Add a reversible
+   or confirmed flow and deterministic keyboard focus.
+3. **Low:** the correct designed HTTP 404 omits the contract's standard
+   header/navigation/footer and basic description/canonical metadata.
+
+## Reproduce
 
 ```sh
-npm test -- --grep @claim:free-use
-```
-
-The new Playwright regression starts from `/demo`, creates a QR handoff, opens
-the recipient view in a fresh browser context, checks that the complete flow
-contains no payment/account controls, and records that every request remains
-same-origin with no payment/account endpoint. It passed independently. This
-fix preserves the existing local-only list, demo namespace, QR privacy
-boundary, handoff behavior, and static Vite deployment class.
-
-## Verification evidence
-
-Fresh clean install completed with `npm ci`: 138 packages audited, 0
-vulnerabilities.
-
-```sh
+npm ci
+jq -r '.[].test' .factory/claims.json | while IFS= read -r test; do bash -lc "$test" || exit; done
 npm run lint
 npm run typecheck
 npm test -- --reporter=list --timeout=30000
 npm run build
 ```
 
-All passed. The full production-build Playwright suite passed **27/27**. It
-covers desktop and 390 px mobile flows, keyboard operation and focus/history,
-200% text reflow, Playwright axe WCAG 2 A/AA scans, privacy request logging,
-offline reload, service-worker revision replacement, 404 routing, and browser
-console errors. The axe scans found no serious or critical issues.
+For the blocking print defect, open `/demo`, leave its sample shopper note in
+place, emulate print media, and inspect `.note-label` and `#note`: both compute
+to `display: none`. For deletion, focus **Remove spaghetti**, press Enter, and
+reload; spaghetti remains absent from `slh:demo:list`, with no Undo available.
 
-Every exact command declared by all **14** entries in `.factory/claims.json`
-was run independently from the clean install and passed, including
-`@claim:free-use`. The production output is `dist/` with `dist/index.html` at
-its root. Current build budget: JavaScript **18.21 KB gzip**, CSS **3.67 KB
-gzip**; the service-worker revision is `slh-924c848c3790` with 15 shell URLs.
-
-`/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/demo
-.factory/qa-evidence/repair-3` passed against the built site: HTTP 200,
-`lang=en`, one h1, a main landmark, no missing image alt text, no unlabeled
-buttons, and no browser console errors. Its desktop/mobile screenshots and
-JSON report are retained in `.factory/qa-evidence/repair-3/`.
-
-The existing public response policy remains in
-`public/staticwebapp.config.json`: self-only CSP, `nosniff`, strict referrer
-policy, immutable hashed assets, no-cache service worker, known-route
-rewrites, and the designed 404 override. No API, analytics, identity,
-payment, or third-party runtime endpoint exists, so live identity/rate-limit
-checks are not applicable.
-
-## Deploy and known gaps
-
-Repair commit `84c18d421624145a2caf3b5aa983e893347b64da` was pushed to
-`origin/main` for the existing Azure Static Web Apps static deployment. The
-deployment output remains `dist/`; no infrastructure, DNS, or billing change
-is required.
-
-Post-push, the public `https://shopping-list-handoff.sociobot.in/demo` returned
-HTTP 200 with the expected English document and Shopping List Handoff title.
-It also returned the configured self-only CSP, `nosniff`, strict referrer
-policy, 30-second HTML revalidation, and HSTS. This repair changes the claims
-manifest, regression coverage, and handoff evidence only, so its deployable
-browser assets intentionally remain byte-identical to the verified candidate.
-
-No known product release blockers remain.
+After repair, repeat the full claim gate and local suite, deploy `dist/`, then
+rerun byte parity, privacy requests, axe, 390 px keyboard/reflow, offline
+reload/update, response headers/caching, and mobile Lighthouse.
