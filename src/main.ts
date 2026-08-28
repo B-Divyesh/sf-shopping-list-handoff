@@ -118,6 +118,8 @@ function render() {
   const isLegal = route === '/privacy' || route === '/terms';
   const currentTitle = route === '/privacy' ? 'Privacy — Shopping List Handoff' : route === '/terms' ? 'Terms — Shopping List Handoff' : route === '/demo' ? 'Demo — Shopping List Handoff' : 'Shopping List Handoff — Share a clear shopping list';
   document.title = currentTitle;
+  const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (canonical) canonical.href = `https://shopping-list-handoff.sociobot.in${route === '/' ? '/' : route}`;
   app.innerHTML = `${header()}${demo ? `<aside class="demo-banner" aria-label="Demo mode"><span><b>Demo</b> — sample data, nothing is saved.</span><button id="reset-demo">Reset demo</button><button id="start-real">Start for real</button></aside>` : ''}${isLegal ? legal(route.slice(1) as 'privacy' | 'terms') : landing()}${footer()}<div class="toast" role="status" aria-live="polite">${esc(toast)}</div>`;
   bind(); if (showQr) makeQr();
 }
