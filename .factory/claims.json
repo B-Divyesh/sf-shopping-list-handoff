@@ -21,6 +21,13 @@
     "sandbox": "fresh browser context at /demo; create and open a QR handoff while recording controls and requests"
   },
   {
+    "id": "pasted-ingredients-to-card",
+    "claim": "Pasted ingredients become a shopping card.",
+    "where": "landing caption, README",
+    "test": "npm test -- --grep @claim:pasted-ingredients-to-card",
+    "sandbox": "fresh browser context at /demo; paste realistic ingredient lines and assert their quantities and names on the handoff card"
+  },
+  {
     "id": "plain-text-export",
     "claim": "Copies the shopper list as plain text.",
     "where": "handoff card button",
@@ -89,6 +96,13 @@
     "where": "privacy page, README",
     "test": "npm test -- --grep @claim:local-data-private",
     "sandbox": "full populated demo flow while recording every browser request URL and body"
+  },
+  {
+    "id": "site-data-clear",
+    "claim": "Clearing browser site data clears saved lists.",
+    "where": "README privacy and limits",
+    "test": "npm test -- --grep @claim:site-data-clear",
+    "sandbox": "fresh browser context creates real and demo lists, clears local site storage, reloads, and asserts neither saved list remains"
   },
   {
     "id": "offline-reload",

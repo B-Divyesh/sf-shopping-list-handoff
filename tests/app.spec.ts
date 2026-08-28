@@ -41,6 +41,17 @@ test('a demo handoff has no payment or account gate @claim:free-use', async ({ p
   }
 });
 
+test('pasted ingredients appear as named, quantified lines on the handoff card @claim:pasted-ingredients-to-card', async ({ page }) => {
+  await page.goto('/demo');
+  await page.getByRole('textbox', { name: 'Paste ingredients' }).fill('750 g red lentils\n2 cans chopped tomatoes\n1 bunch cilantro');
+  await page.getByRole('button', { name: 'Add ingredients' }).click();
+  await expect(page.getByText('750 g', { exact: true })).toBeVisible();
+  await expect(page.getByText('red lentils', { exact: true })).toBeVisible();
+  await expect(page.getByText('2 can', { exact: true })).toBeVisible();
+  await expect(page.getByText('chopped tomatoes', { exact: true })).toBeVisible();
+  await expect(page.getByText('cilantro', { exact: true })).toBeVisible();
+});
+
 test('paste normalizes a recipe list and plain text copies it @claim:plain-text-export', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
   await page.goto('/demo');
@@ -257,6 +268,22 @@ test('a complete populated handoff sends no list, note, or device data to a serv
   expect(observed).not.toContain('Private household 17');
   expect(observed).not.toContain('Gate code 1234');
   expect(requests.every(request => request.body === null && new URL(request.url).origin === 'http://127.0.0.1:4173')).toBeTruthy();
+});
+
+test('clearing browser site data removes saved real and demo lists @claim:site-data-clear', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('textbox', { name: 'Item' }).fill('real oats');
+  await page.getByRole('textbox', { name: 'Item' }).press('Enter');
+  await page.goto('/demo');
+  await page.getByRole('textbox', { name: 'Item' }).fill('demo fennel');
+  await page.getByRole('textbox', { name: 'Item' }).press('Enter');
+  expect(await page.evaluate(() => Object.keys(localStorage).sort())).toEqual(['slh:demo:list', 'slh:real:list']);
+  await page.evaluate(() => localStorage.clear());
+  expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
+  await page.goto('/');
+  await expect(page.getByText('real oats', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('demo fennel', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Your handoff card will appear here.')).toBeVisible();
 });
 
 test('works offline after the first visit @claim:offline-reload', async ({ page, context }) => {

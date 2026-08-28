@@ -1,7 +1,7 @@
 # Shopping List Handoff
 
-Turn pasted recipe ingredients into a clear shopping list for someone who does
-not use your meal-planning app.
+Turn pasted ingredients into a clear shopping list for someone who does not
+use your meal-planning app.
 
 It is for household cooks who need to hand a precise list to another shopper.
 Paste ingredient lines and check the quantities. Then print, copy, make a QR
