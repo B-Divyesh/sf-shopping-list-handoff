@@ -1,4 +1,4 @@
-# Copy audit — polish 1
+# Copy audit — polish 2
 
 Reviewed 2026-08-28 against the landing page and README. Counts exclude
 navigation, punctuation, and code examples. No sentence exceeds 22 words and
@@ -12,12 +12,13 @@ no banned marketing words appear.
 | Stored in this browser | 4 | Pass |
 | Works after first visit | 4 | Pass |
 | No account needed | 3 | Pass |
-| Pasted ingredients become a shopping card. | 6 | `pasted-ingredients-to-card` |
+| Pasted ingredients become a handoff card. | 6 | `pasted-ingredients-to-card` |
 | Paste ingredients or start a list | 6 | Pass |
-| One ingredient per line works best. | 6 | Pass |
+| Paste one ingredient per line. | 5 | Instruction |
 | We keep uncertain quantities visible. | 5 | Pass |
 | Saved only in this browser. | 5 | Pass |
 | Your handoff card will appear here. | 6 | Pass |
+| Print shopping list | 3 | `print-sheet` |
 | Paste ingredients or add an item above. | 8 | Pass |
 | Make a list someone can use | 6 | Pass |
 | Paste ingredient lines into the list. | 6 | Instruction |
@@ -65,4 +66,5 @@ no banned marketing words appear.
 ## Flags
 
 None. The earlier broad “any recipe app” phrase, unsupported “recipe details”
-wording, and decorative serial labels cited in review 1 are absent.
+wording, unsupported “works best” comparison, decorative serial labels, and
+ambiguous “shopping card” label are absent.

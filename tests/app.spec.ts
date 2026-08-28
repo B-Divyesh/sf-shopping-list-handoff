@@ -13,6 +13,16 @@ test('demo opens with a ready handoff card without an account @claim:sample-demo
   await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
 });
 
+test('the direct demo query opens the isolated sample with its controls', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Demo — sample data, nothing is saved.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Start for real' })).toBeVisible();
+  await expect(page.getByText('spaghetti', { exact: true })).toBeVisible();
+  await expect(page).toHaveTitle('Demo — Shopping List Handoff');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://shopping-list-handoff.sociobot.in/demo');
+});
+
 test('a demo handoff has no payment or account gate @claim:free-use', async ({ page, browser }) => {
   const requests: string[] = [];
   page.on('request', request => requests.push(request.url()));
@@ -90,6 +100,7 @@ test('a local handoff file imports into a real list @claim:local-file-roundtrip'
 test('print control invokes the browser print dialog and includes the shopper note @claim:print-sheet', async ({ page }) => {
   await page.goto('/demo');
   await page.evaluate(() => { window.print = () => document.body.dataset.printed = 'yes'; });
+  await expect(page.getByRole('button', { name: 'Print shopping list' })).toHaveText(/Print shopping list/);
   await page.getByRole('button', { name: 'Print shopping list' }).click();
   await expect.poll(() => page.evaluate(() => document.body.dataset.printed)).toBe('yes');
   await page.emulateMedia({ media: 'print' });
@@ -97,6 +108,26 @@ test('print control invokes the browser print dialog and includes the shopper no
   await expect(page.locator('.print-note')).toBeVisible();
   await expect(page.getByLabel(/Note for the shopper/)).toBeHidden();
   await page.emulateMedia({ media: 'screen' });
+});
+
+test('routes set their own title, canonical URL, and share metadata', async ({ page }) => {
+  const routes = [
+    { path: '/', title: 'Shopping List Handoff — Clear shopping lists', description: 'Turn pasted ingredients into a clear handoff card another shopper can use.', canonical: '/' },
+    { path: '/demo', title: 'Demo — Shopping List Handoff', description: 'Try a ready handoff card with sample pasta-night ingredients.', canonical: '/demo' },
+    { path: '/privacy', title: 'Privacy — Shopping List Handoff', description: 'Read how Shopping List Handoff keeps ingredient lists in this browser.', canonical: '/privacy' },
+    { path: '/terms', title: 'Terms — Shopping List Handoff', description: 'Read the simple terms for this free local shopping-list tool.', canonical: '/terms' },
+    { path: '/handoff#list=not-valid-data', title: 'Shared list — Shopping List Handoff', description: 'Check a shared shopping list in this browser without saving it.', canonical: '/handoff' }
+  ];
+  for (const route of routes) {
+    await page.goto(route.path);
+    await expect(page).toHaveTitle(route.title);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', route.description);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', route.title);
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', route.description);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', route.title);
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute('content', route.description);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://shopping-list-handoff.sociobot.in${route.canonical}`);
+  }
 });
 
 test('QR opens a recipient list and excludes private fields @claim:qr-recipient @claim:qr-private', async ({ page, browser }) => {
@@ -379,6 +410,11 @@ test('unknown paths return the designed HTTP 404', async ({ page }) => {
   await expect(page.getByRole('contentinfo')).toContainText('Built by Param Factory');
   await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /shopping-list page is missing/i);
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', 'https://shopping-list-handoff.sociobot.in/404');
+  await expect(page.locator('link[rel="icon"]')).toHaveAttribute('href', '/favicon.svg');
+  await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Page not found — Shopping List Handoff');
+  await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', /shopping-list page is missing/i);
+  await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', 'Page not found — Shopping List Handoff');
   const config = JSON.parse(await readFile('public/staticwebapp.config.json', 'utf8'));
   expect(config.navigationFallback).toBeUndefined();
   expect(config.routes.filter((route: { rewrite?: string }) => route.rewrite === '/index.html').map((route: { route: string }) => route.route)).toEqual(['/demo', '/privacy', '/terms', '/handoff']);
