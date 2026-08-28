@@ -1,0 +1,10 @@
+/* High-contrast overrides for the two red transfer actions. */
+#try-demo,
+#copy-text {
+  background: #9f3027;
+}
+
+#try-demo:hover,
+#copy-text:hover {
+  background: #7e251f;
+}

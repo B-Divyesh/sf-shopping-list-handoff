@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://shopping-list-handoff.sociobot.in/sitemap.xml
