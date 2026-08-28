@@ -36,6 +36,12 @@ latest report’s open findings are repaired in this round.
 
 ## Screenshots and URLs
 
-Current local screenshots and post-deploy live checks are recorded in
-`.factory/handoff.md`. The test suite also covers the 390 px first screen,
-200% text reflow, receiver view, legal routes, and 404.
+Current evidence is
+`qa-evidence/polish-1/landing-mobile-390.png`,
+`qa-evidence/polish-1/demo-mobile-390.png`, and
+`qa-evidence/polish-1/404-mobile-390.png`. Cold live checks passed at
+`https://shopping-list-handoff.sociobot.in` after deployment; their matching
+screenshots are under `qa-evidence/polish-1/live/`. The live page serves
+`assets/index-qAET-YQJ.js`, includes the two rewritten phrases, and does not
+include either removed label. The test suite also covers the 390 px first
+screen, 200% text reflow, receiver view, legal routes, and 404.
