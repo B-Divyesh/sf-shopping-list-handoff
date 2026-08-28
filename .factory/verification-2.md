@@ -1,244 +1,263 @@
 # Independent verification 2 — FAIL
 
-**Candidate:** `e5985a28219d27ba270803481d2374b01d2b74e5`  
-**Verified URL:** <https://shopping-list-handoff.sociobot.in>  
-**Date:** 2026-08-28  
-**Scope:** clean install/build/tests plus independent live desktop, 390 px
-mobile, keyboard, accessibility, privacy, PWA, response-policy, performance,
-and end-to-end handoff checks. Product code was not modified.
+**Candidate:** `e5985a28219d27ba270803481d2374b01d2b74e5`
+
+**Verified URL:** <https://shopping-list-handoff.sociobot.in>
+
+**Date:** 2026-08-28
+
+**Scope:** clean install/build/tests, every declared claim, exact live parity,
+desktop and 390 px functional QA, boundary and recovery paths, keyboard,
+accessibility, privacy, PWA, response policy, caching, and performance. Product
+code was not modified.
 
 ## Release decision
 
-**FAIL.** The live deployment byte-matches the candidate, the first-read gate
-passes, and all eight declared claim commands pass. The candidate still fails
-the acceptance contract because a core checked-item recovery control does
-nothing and visitor-facing print/import/normalization claims are missing from
-the mandatory claims manifest. Additional boundary, navigation, and
-accessibility defects are listed below.
+**FAIL.** The deployment is healthy and byte-matches this candidate. The cold
+first-read gate, all eight declared claim commands, and all repository checks
+pass. Release is blocked by a broken checked-item recovery control and an
+incomplete claims manifest. Additional input-boundary, routing, responsive,
+and accessibility defects remain.
 
-## First-read gate — PASS
+## Mandatory gates
 
-In a fresh live desktop context, the first viewport says:
+### First-read — PASS
 
-- What it does: **“Hand off a clear shopping list.”**
-- Who it is for: **“For cooks who need someone outside their app to shop
-  without questions.”**
-- What to click first: **“Try it with sample data,”** followed by **“Opens a
-  ready-to-send pasta list.”**
+A fresh, unscrolled live page answers all three required questions:
 
-The action is visible without setup. One click opens `/demo`, shows the
-persistent **“Demo — sample data, nothing is saved”** banner with **Reset demo**
-and **Start for real**, and immediately renders six realistic pasta-list items.
+- What: **“Hand off a clear shopping list.”**
+- For whom: **“For cooks who need someone outside their app to shop without
+  questions.”**
+- First click: **“Try it with sample data,”** with **“Opens a ready-to-send
+  pasta list”** beside it.
 
-## Mandatory declared claims
+One click opens `/demo`, displays the persistent demo banner and controls, and
+renders a realistic six-item pasta list. The headline, audience, action, and
+outcome are visible at 390 × 844. Evidence:
+[`first-read-desktop.png`](qa-evidence/live/first-read-desktop.png) and
+[`first-read-mobile-390.png`](qa-evidence/live/first-read-mobile-390.png).
 
-`.factory/claims.json` exists. Each tag occurs exactly once in
-`tests/app.spec.ts`. Every listed command was run independently before the
-general suite, using a fresh Playwright context and the configured production
-demo entry point.
+### Declared claims — all commands PASS
 
-| Claim | Exact command | Result |
-| --- | --- | --- |
-| `sample-demo` | `npm test -- --grep @claim:sample-demo` | PASS, 1 test |
-| `no-account` | `npm test -- --grep @claim:no-account` | PASS, 1 test |
-| `plain-text-export` | `npm test -- --grep @claim:plain-text-export` | PASS, 1 test |
-| `local-file-private` | `npm test -- --grep @claim:local-file-private` | PASS, 1 test |
-| `qr-recipient` | `npm test -- --grep @claim:qr-recipient` | PASS, 1 test |
-| `qr-private` | `npm test -- --grep @claim:qr-private` | PASS, 1 test |
-| `local-only` | `npm test -- --grep @claim:local-only` | PASS, 1 test |
-| `offline-reload` | `npm test -- --grep @claim:offline-reload` | PASS, 1 test |
+`.factory/claims.json` exists. After `npm ci`, every exact command was run
+independently against the production-build demo entry point.
 
-The declaration audit itself fails: the page and README promise print,
-opening a local handoff file, and normalized/checked quantities, but no claim
-entry tests those promises. See High defect 2.
+| Claim | Exact command | Result | Output |
+| --- | --- | --- | --- |
+| `sample-demo` | `npm test -- --grep @claim:sample-demo` | Pass, 1/1 | [output](qa-evidence/claims/sample-demo.txt) |
+| `no-account` | `npm test -- --grep @claim:no-account` | Pass, 1/1 | [output](qa-evidence/claims/no-account.txt) |
+| `plain-text-export` | `npm test -- --grep @claim:plain-text-export` | Pass, 1/1 | [output](qa-evidence/claims/plain-text-export.txt) |
+| `local-file-private` | `npm test -- --grep @claim:local-file-private` | Pass, 1/1 | [output](qa-evidence/claims/local-file-private.txt) |
+| `qr-recipient` | `npm test -- --grep @claim:qr-recipient` | Pass, 1/1 | [output](qa-evidence/claims/qr-recipient.txt) |
+| `qr-private` | `npm test -- --grep @claim:qr-private` | Pass, 1/1 | [output](qa-evidence/claims/qr-private.txt) |
+| `local-only` | `npm test -- --grep @claim:local-only` | Pass, 1/1 | [output](qa-evidence/claims/local-only.txt) |
+| `offline-reload` | `npm test -- --grep @claim:offline-reload` | Pass, 1/1 | [output](qa-evidence/claims/offline-reload.txt) |
 
-## Clean checkout gates
+The manifest audit itself fails; see High defect 2.
 
-Run at candidate `e5985a2`:
+## Repository and deployment evidence
 
-| Check | Result |
-| --- | --- |
-| `npm ci` | PASS; 138 packages audited, 0 vulnerabilities |
-| `npm run lint` | PASS |
-| `npm run typecheck` | PASS |
-| `npm test` | PASS; 13/13 Playwright tests |
-| `npm run build` | PASS; `dist/` produced |
+- Initial checkout was clean at candidate `e5985a2`.
+- `npm ci`: pass; 138 packages audited, 0 vulnerabilities.
+- `npm run lint`: pass.
+- `npm run typecheck`: pass.
+- `npm test`: pass, 13/13 Playwright tests. Evidence:
+  [`full-test.txt`](qa-evidence/full-test.txt).
+- `npm run build`: pass; `dist/` produced with service-worker revision
+  `slh-0fc9ef2a9181` and 15 shell URLs. Evidence:
+  [`build.txt`](qa-evidence/build.txt).
+- Live and candidate SHA-256 values matched for `index.html`, hashed JS/CSS,
+  hero and social art, icons, service worker, 404 page/CSS, robots, and sitemap.
+- `/`, `/demo`, `/privacy`, `/terms`, and `/handoff` returned 200. An unknown
+  route returned the designed 506-byte page with HTTP 404.
+- Hashed assets returned one-year immutable caching; the service worker
+  returned `no-cache`; HTML revalidates after 30 seconds.
+- Responses included HSTS, `nosniff`, strict-origin referrer policy, and a
+  self-only CSP with `frame-ancestors 'none'`. Captures:
+  [`qa-evidence/headers/`](qa-evidence/headers/).
+- `/opt/fleet/lib/verify-url.sh` passed in 662 ms with a title, `lang=en`, one
+  h1, a main landmark, no missing alt text, no unlabeled buttons, and no console
+  errors. Evidence: [`verify.json`](qa-evidence/verify-url/verify.json).
 
-The build generated service-worker revision `slh-0fc9ef2a9181` with 15 shell
-URLs. Initial JavaScript is 46.23 KB raw / 17.72 KB gzip; CSS is 11.52 KB raw /
-3.41 KB gzip; the hero WebP is 33.43 KB. All are below the supplied budgets.
-
-## Live deployment identity and policies
-
-The deployment is the candidate, not a stale repair:
-
-- `dist/index.html` and live `/` have identical SHA-256
-  `06fcd9b2bbb5e8b5d5e0026c2dd51bb3e1e4ff87156cfe007e7f666b423c6d0c`.
-- Candidate/live hashes also match for JS `e260fd85…`, CSS `f264d06e…`, hero
-  `309e5dd5…`, service worker `89db43e9…`, 404 page `4a72c973…`, 404 CSS
-  `922c337c…`, social image, icons, robots, and sitemap.
-- `/`, `/demo`, `/privacy`, `/terms`, and `/handoff` return 200. A fresh
-  `/missing-release-check` returns the designed page with HTTP 404.
-- Hashed assets return `Cache-Control: public, max-age=31536000, immutable`;
-  the service worker returns `no-cache`; HTML revalidates after 30 seconds.
-- HTTPS sends HSTS, `nosniff`, `strict-origin-when-cross-origin`, and the
-  self-only CSP. No CSP, console, or page errors occurred.
-
-`/opt/fleet/lib/verify-url.sh` passed: title, `lang=en`, one h1, main landmark,
-all image alt attributes, and all button names were present; measured load was
-1,014 ms.
+This fresh evidence rules out the previously reported deployment-only failure.
 
 ## End-to-end evidence
 
-### Passed
+### Passed behavior
 
-- Demo isolation: in a context preloaded with a private real list, `/demo`
-  neither displayed nor changed the real key. Reset affected only
-  `slh:demo:list`; Start for real removed the demo key.
-- Quantity handling: `500 g` plus `0.5 kg` became `1 kg`; `1 lb` plus `16 oz`
-  became `907.18 g`; `½ cup` became `118.29 ml`; ambiguous counts produced a
-  visible warning.
-- Plain-text copy contained the title, unchecked item lines, and shopper note.
-- A downloaded handoff file was valid JSON and excluded the shopper note. It
-  imported into a clean real list with six items and an empty note.
+- Demo mode used `slh:demo:list`, did not display or change a seeded real list,
+  reset only demo data, and removed the demo key on **Start for real**.
+- `500 g` plus `0.5 kg` normalized to `1 kg`; `1 lb` plus `16 oz` became
+  `907.18 g`; `½ cup` became `118.29 ml`; `0 g` remained visible; ambiguous
+  count quantities produced a warning.
+- Empty paste, malformed JSON, negative decimals, and malformed handoff links
+  produced clear recovery paths. Clear-list cancel and confirm both worked.
+- Plain-text copy contained the expected list. A local handoff file was valid
+  JSON, omitted the shopper note, and imported into a clean list.
+- Print invoked `window.print`; print media hid app controls and kept the
+  shopper sheet.
 - A live QR decoded to an HTTPS `/handoff#list=…` URL. A fresh 390 px context
-  opened a checkable 10-item recipient list. The private title and note were
-  absent, localStorage remained empty, and no request contained the fragment.
-- Print invoked `window.print`. Malformed JSON, negative decimals, `1/0`, and
-  empty paste input produced recovery messages. Clear-list cancel and confirm
-  paths both worked.
-- The live service worker controlled a fresh context; offline `/demo` reload
-  passed from cache `slh-0fc9ef2a9181`. The repository's two-revision update
-  test also passed and removed the old cache.
-
-### Accessibility, mobile, and performance
-
-- Live axe WCAG 2 A/AA scans found no serious or critical issues on `/`,
-  `/demo`, `/privacy`, `/terms`, malformed `/handoff`, a valid recipient view,
-  or the 404 page.
-- Desktop and 390 px layouts had no ordinary horizontal overflow. The skip
-  link worked by keyboard, the visible checklist focus ring was 3 px solid,
-  recipient checkboxes toggled with Space, and reduced motion removed smooth
-  scrolling and transitions.
-- All crawled HTTP links returned 200; the semantic dead anchor is recorded
-  separately below.
-- Live Lighthouse 12.2.1 mobile `/demo`: Performance **100**,
-  Accessibility **100**, Best Practices **100**, SEO **100**; FCP **930 ms**,
-  LCP **1,230 ms**, CLS **0**, TBT **42 ms**, transferred **56.5 KB**.
+  opened a checkable list, stored nothing, and sent neither fragment nor item
+  data in requests. Private title and note data were absent. Evidence:
+  [`recipient-mobile.png`](qa-evidence/live/recipient-mobile.png).
+- A 180-line QR attempt failed soft and directed the sender to plain text or a
+  local file.
 
 ### Privacy and server scope
 
-The complete exercised live flow made only same-origin requests. There are no
-analytics, third-party fonts/scripts, accounts, server-side product APIs, or
-product-unlock calls. Rate-limit and Microsoft Entra checks are therefore not
-applicable: there is no API endpoint to burst and no sign-in flow. The product
-does not need an AI feature for the researched deterministic handoff job.
+The complete exercised flow made same-origin static GET requests only. There
+are no analytics, third-party fonts/scripts, accounts, server-side product APIs,
+product-unlock calls, payments, or sign-in. API rate-limit and Microsoft Entra
+checks are therefore not applicable. The researched deterministic handoff job
+does not need an AI feature.
+
+### PWA
+
+A fresh live context was controlled by `/service-worker.js`. Cache
+`slh-0fc9ef2a9181` contained all 15 shell URLs, including hashed assets and
+known routes. `/demo` reloaded offline with sample data. The repository's
+two-revision update test also passed and removed the old cache.
+
+## Accessibility, responsive layout, and performance
+
+- Live desktop and 390 px axe WCAG 2 A/AA scans covered `/`, `/demo`,
+  `/privacy`, `/terms`, malformed and valid handoffs, and the 404. No serious
+  or critical findings occurred; one run found no axe violations at any impact
+  level on all public/recovery routes.
+- Valid routes had `lang=en`, one h1, one main, no missing image alt, no normal
+  horizontal overflow, and no application console/page errors.
+- The skip link moved focus to `main`. Demo entry, quick add, and checkboxes
+  worked with Tab, Enter, and Space. Checklist focus used a visible 3 px ring.
+- Reduced motion disabled smooth scrolling and toast transitions.
+- Two fresh live Lighthouse 12.2.1 mobile `/demo` runs scored Performance
+  **97–100**, Accessibility **100**, Best Practices **100**, SEO **100**; LCP
+  **1.23–1.288 s**, CLS **0**, and TBT **42–192 ms**. Raw retained run:
+  [`lighthouse-live.json`](qa-evidence/lighthouse-live.json).
+- Initial JS is **17.72 KB gzip**, CSS **3.41 KB gzip**, and hero WebP **33.4
+  KB**. All are within budget.
 
 ## Defects
 
-### High — checked items cannot be shown or unchecked
+### High — checked items cannot be shown or restored
 
-On live `/demo`, focusing the first checklist item and pressing Space removes
-`spaghetti` from the card and exposes **“Show 1 checked item.”** Focusing that
-button and pressing Enter, or clicking it, changes nothing. The item remains
-hidden and cannot be unchecked. Source inspection confirms that `builder()`
-renders `#show-done`, but `bind()` installs no listener for it. This breaks the
-core checkable-list recovery path and also drops keyboard focus to the page
-after an item is checked.
+On live `/demo`, focus the first checkbox and press Space. The item disappears
+and **Show 1 checked item** appears. Enter or click on that control leaves the
+same five rows and the same button. Source inspection confirms `builder()`
+renders `#show-done`, but `bind()` installs no listener.
 
-**Required repair:** implement a checked-items view/toggle with retained
-keyboard focus and an announced state, or keep checked items visible and
-reversible. Add an end-to-end test that checks, shows, and unchecks an item.
+Print, plain-text, and QR paths filter out checked items. An accidental check
+can therefore create an incomplete handoff while the only recovery control is
+inert. Focus also drops to the page when the row rerenders.
 
-### High — the claims manifest omits visitor-facing promises
+**Required repair:** implement a checked-items view with keyboard-accessible
+uncheck/restore, retained focus, announced state, and an end-to-end regression
+that proves the restored item returns to every export.
 
-The landing page and README tell visitors they can print and open a local
-handoff file, and that the product reviews/normalizes quantities. The UI
-contains **“Print, copy, scan, or save a local file”** and **“Or open a local
-handoff file.”** `.factory/claims.json` has no print, file-import/round-trip, or
-normalization claim. The existing local-file claim only proves that an export
-omits the note; the plain-text claim happens to exercise one conversion but
-does not declare or cover the broader normalization promise. The privacy page
-also makes the stronger promise that ingredient lists, notes, and device
-identifiers are not sent to a server, while `@claim:local-only` observes only
-initial demo loading rather than the whole populated sharing flow.
+### High — the claims manifest omits or under-tests visitor promises
 
-This violates the supplied “every claim is a test” contract even though the
-manually exercised print and file round trip worked.
+The supplied contract says every visitor-facing promise needs exactly one
+tagged observable test. Missing or inadequate coverage includes:
 
-**Required repair:** add narrowly worded claim entries and tagged observable
-tests for print, file round-trip, normalization boundaries, and the full
-privacy flow, or remove the promises.
+- Print controls and README print guidance.
+- Local handoff file import/round-trip; the existing file claim tests only note
+  exclusion on export.
+- Recipient checkbox operation; `qr-recipient` asserts only that the view and
+  an item appear.
+- Visible uncertain quantities and broader normalization boundaries; an export
+  test incidentally asserts one conversion but declares no normalization claim.
+- The privacy page's stronger no-list/note/device-data-to-server statement;
+  `local-only` observes initial load and allows same-origin traffic rather than
+  inspecting the complete populated flow and request bodies.
+- README's absolute “any browser” wording, while the test uses one Chromium
+  configuration.
 
-### Medium — an empty list produces a QR that can only fail
+**Required repair:** add narrowly worded claim entries and separately tagged
+tests for each promise, including full-flow network interception, or remove/
+narrow the copy.
 
-On a clean real list with zero items, **Make QR code** generated
-`/handoff#list=eyJ2IjoxLCJpIjpbXX0` without a warning. Opening it in a fresh
-recipient page displayed **“This handoff link is incomplete.”** Recovery is
-offered only after the bad handoff has been shared.
+### Medium — an empty list generates a QR that only fails for the recipient
 
-**Required repair:** disable QR/export until at least one item exists or show a
-sender-side, announced “add an item first” error. Add an empty-boundary test.
+On a clean zero-item list, **Make QR code** creates a URL whose fresh recipient
+view says **“This handoff link is incomplete.”** The sender receives no warning.
 
-### Medium — safe count quantities remain duplicated
+**Required repair:** disable sharing until an item exists or announce “Add an
+item first,” with a boundary test.
 
-Pasting `1 bunch basil` twice leaves two separate `1 bunch basil` rows while
-`500 g rice` plus `0.5 kg rice` correctly becomes `1 kg rice`. Combining equal
-count units is unambiguous and is needed for the brief's concise,
-unit-normalized card. The current normalization compares the existing count
-base (`count`) with the incoming literal unit (`bunch`), so it never merges.
+### Medium — identical count quantities do not merge
 
-**Required repair:** merge identical count units for the same normalized item
-name while retaining the warning for genuinely ambiguous sizes.
+Pasting `1 bunch basil` twice leaves duplicate rows. Equal count units are safe
+to combine and the brief requires a concise normalized card. The current base
+comparison uses `count` for the existing item but literal `bunch` for the new
+item, so it never merges.
 
-### Medium — finite input can overflow into a corrupt quantity
+**Required repair:** merge identical count units for the same normalized name
+while retaining ambiguity warnings for unknown pack/produce sizes.
 
-Quick-add accepts amount `1e308`, unit `kg`, item `boundary sugar`. Conversion
-overflows and the card displays **“Infinity kg boundary sugar.”** JSON export
-or QR serialization changes JavaScript `Infinity` to `null`, silently losing
-the amount.
+### Medium — finite input can overflow to a corrupt quantity
+
+Quick-add accepts `1e308 kg` and displays **Infinity kg**. JSON/QR serialization
+then converts `Infinity` to `null`, silently discarding the amount.
 
 **Required repair:** validate the converted result as finite and within a
-documented practical maximum before saving or sharing it.
+documented practical maximum before saving or sharing.
 
-### Medium — a required blank item has no announced error
+### Medium — a blank required item has no announced error
 
-Submitting **Add item** with the item name blank only moves focus to the input.
-There is no error text, `aria-invalid`, `aria-describedby`, or live
-announcement. The form uses `novalidate`, so native validation provides no
-message either.
+Submitting **Add item** with no item name only moves focus. Because the form
+uses `novalidate`, there is no visible error, `aria-invalid`, associated
+description, or live announcement.
 
-**Required repair:** show and associate a plain recovery message such as “Add
-an item name,” mark the field invalid, and test keyboard/screen-reader output.
+**Required repair:** show and associate “Add an item name,” mark the field
+invalid, and cover keyboard/screen-reader output.
 
-### Medium — route navigation has a dead link and incomplete focus handling
+### Medium — routing has a dead anchor and loses Back focus
 
-The consistent header uses `href="#how"` everywhere. On `/privacy`, `/terms`,
-and `/handoff` there is no `#how`, so **How it works** changes only the fragment
-and goes nowhere. SPA forward navigation correctly focuses the new h1 after a
-frame, but browser Back rerenders the landing page with focus left on `body`,
-contrary to the supplied route-change focus requirement.
+The header uses `href="#how"` on every route. `/privacy`, `/terms`, and
+`/handoff` have no `#how`, so **How it works** goes nowhere. SPA forward
+navigation focuses the new h1, but browser Back returns with
+`document.activeElement === body`. There is no route live-region announcement.
 
-**Required repair:** link non-landing headers to `/#how`; on `popstate`, move
-focus to the restored h1 (or intentionally restore the originating control)
-and announce the route.
+**Required repair:** use `/#how` away from the landing page; restore logical
+focus and scroll on popstate; announce route changes; test push/back/forward.
 
-### Medium — one mobile touch target remains below baseline
+### Medium — 200% text resizing breaks mobile reflow
 
-At 390 px, the footer **Terms** link measures **37 × 44 CSS px**. The supplied
-accessibility contract requires independent touch targets to be at least
-44 × 44 px. Other repaired demo controls and remove buttons meet the minimum.
+At 390 px with text resized to 200%, root/demo reached `scrollWidth = 688` and
+Privacy/malformed handoff reached 436 px. Header and workbench controls moved
+off-screen, forcing two-dimensional panning. Evidence:
+[`demo-mobile-text-200.png`](qa-evidence/live/demo-mobile-text-200.png).
 
-**Required repair:** give footer links at least 44 px inline size and preserve
-adequate spacing from adjacent targets.
+**Required repair:** constrain grid children and wrap/stack the header,
+quick-add, sheet header, and export controls; add a 200% resize test.
+
+### Medium — a mobile touch target remains below 44 px
+
+At 390 px, footer **Terms** measured **37 × 44 CSS px**, below the supplied
+44 × 44 baseline. The focused skip link also measured 112 × 39 px, although it
+is primarily a keyboard target. Repaired demo and remove controls passed.
+
+**Required repair:** give all rendered independent links a 44 × 44 hit area
+and test the complete interactive set rather than selected controls.
+
+### Low — the third required hero fact falls below the first mobile viewport
+
+At 390 × 844, LOCAL and OFFLINE are fully visible, but **FREE — No account
+needed** spans y=840.7–854.7. The required what/for-whom/first-click gate passes,
+but the plain-words first-screen shape asks for all three facts. Evidence:
+[`first-read-mobile-390.png`](qa-evidence/live/first-read-mobile-390.png).
+
+### Low — Start for real gives incorrect returning-user feedback
+
+With an existing real list, demo mode correctly hides it and **Start for real**
+correctly restores it, but the toast says “Your real list starts empty.” The
+feedback contradicts the visible state; no data was lost.
 
 ## Retest order
 
-1. Add the missing claim declarations/tests and run every command separately.
-2. Check, show, and uncheck an item with keyboard and touch.
-3. Exercise empty QR, duplicate counts, huge converted quantities, and blank
-   quick-add input.
-4. Retest legal-page **How it works**, browser Back focus, and all 390 px touch
-   targets.
-5. Repeat clean gates, parity hashes, live QR privacy, offline update/reload,
+1. Expand the manifest and run every claim command independently.
+2. Check → show → uncheck an item, then verify print, copy, QR, and file output.
+3. Exercise empty QR, duplicate counts, huge conversions, and blank quick add.
+4. Retest legal-route anchors, browser history focus/announcement, 200% text,
+   all 390 px targets, and the mobile first fold.
+5. Repeat clean gates, parity hashes, full-flow privacy, offline update/reload,
    axe, and Lighthouse.

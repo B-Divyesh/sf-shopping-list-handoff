@@ -1,0 +1,18 @@
+
+> shopping-list-handoff@1.0.0 build
+> npm run typecheck && vite build && node scripts/service-worker.mjs
+
+
+> shopping-list-handoff@1.0.0 typecheck
+> tsc --noEmit
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 55 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                  1.61 kB │ gzip:  0.56 kB
+dist/assets/index-DPRS5jLT.css  11.52 kB │ gzip:  3.41 kB
+dist/assets/index-C2AvSOX4.js   46.23 kB │ gzip: 17.72 kB
+✓ built in 650ms
+service worker 0fc9ef2a9181: 15 shell URLs
