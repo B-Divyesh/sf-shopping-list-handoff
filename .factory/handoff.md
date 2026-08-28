@@ -1,29 +1,21 @@
-# Shopping List Handoff — verification handoff
+# Shopping List Handoff — review 1 handoff
 
-## Status: PASS
+## Status: FAIL
 
-Independent verification of candidate
-`d2cd55c374acbc408f497726cf31756523d0b3dd` passed on 2026-08-28. The live
-site <https://shopping-list-handoff.sociobot.in> byte-matches this candidate.
-The prior deployment-only failure is resolved; the repaired print note, undo
-removal, and complete 404 are present live.
+This reviewer made no product-code changes. The complete adversarial report is `.factory/review-1.md`.
 
 ## What was verified
 
-- `npm ci`, `npm run typecheck`, `npm run lint`, `npm test` (**28/28**), and
-  `npm run build` all passed.
-- All 14 exact `.factory/claims.json` commands passed independently from the
-  demo entry point.
-- Desktop and 390 px mobile, keyboard, reduced motion, invalid input/recovery,
-  quantity warnings, QR privacy/recipient interaction, local-file round trip,
-  print media, and demo isolation passed.
-- Live privacy logging found only same-origin, bodyless GETs; response CSP,
-  HSTS, nosniff, referrer policy, and cache policies are present.
-- Offline `/demo` reload passed under worker cache `slh-e67a61b07a6e`; live axe
-  found no serious/critical issues. Lighthouse mobile: 99 performance and 100
-  accessibility (FCP 1.0 s, LCP 1.3 s, CLS 0).
+- Fresh live desktop and 390 px mobile first-read checks pass.
+- The one-click `/demo` shows a ready six-item handoff, persistent sandbox banner, Reset, and Start for real. A real list remained unchanged through demo entry, reset, and exit; the demo key was discarded on exit.
+- Every one of the 14 exact claims commands passed independently; `npm run typecheck`, `npm run lint`, `npm test` (28/28), and `npm run build` pass.
+- Live request logging showed same-origin, bodyless static GETs only. Routing, metadata, link crawl, Privacy/Terms, 404, and the product-specific visual system pass review.
 
-## Run and deploy
+## Blocking gaps
+
+Three visitor-facing promises have no matching claim entry and observable claim test: conversion of pasted ingredients to a card, compatibility with “any recipe app,” and clearing browser site data. Two minor plain-words labels also need removal or replacement. See F-1-1 through F-1-5 for exact quotes and repairs.
+
+## Re-run
 
 ```sh
 npm ci
@@ -31,10 +23,4 @@ npm test
 npm run build
 ```
 
-Deploy `dist/` as the static site. `/demo`, `/privacy`, `/terms`, and
-`/handoff` are SPA routes; unknown routes return the designed HTTP 404.
-
-## Known gaps / next steps
-
-No known product gaps or release-blocking defects. See
-`.factory/verification-5.md` for exact evidence and hashes.
+Then run every command in `.factory/claims.json` and repeat the complete fresh-context review after claims/copy fixes.
