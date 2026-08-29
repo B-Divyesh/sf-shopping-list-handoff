@@ -1,6 +1,6 @@
-# Copy audit — polish 3
+# Copy audit — polish 4
 
-Reviewed 2026-08-28 against the landing page, demo, legal routes, 404, and
+Reviewed 2026-08-29 against the landing page, demo, legal routes, 404, and
 README. Counts exclude punctuation and code paths. Every sentence is 22 words
 or fewer. No banned marketing word, serial label, unexplained initialism, or
 unlisted claim remains.
@@ -51,6 +51,9 @@ unlisted claim remains.
 | Check the sample list, then copy, print, scan, or save it. | 11 | Export actions already covered above |
 | How Shopping List Handoff stores data | 6 | Privacy route h1 |
 | Terms for Shopping List Handoff | 5 | Terms route h1 |
+| Shopping List Handoff is free to use. | 7 | `free-use` |
+| Use it for ordinary shopping information and check the final list before sharing it. | 13 | Direct instruction |
+| The software is provided as-is, without warranties. | 7 | Legal limitation |
 | This page was not found | 6 | Literal 404 h1 |
 | Shop this handed-off list | 5 | Recipient h1 |
 | This handoff link is incomplete | 5 | Recovery h1 |
@@ -69,6 +72,7 @@ unlisted claim remains.
 | The app works offline after the first visit. | 8 | `offline-reload` |
 | No list data is sent to a server. | 8 | `local-data-private` |
 | Clearing browser site data clears them. | 6 | `site-data-clear` |
+| Turn pasted ingredients into a handoff card. | 7 | Catalog; `pasted-ingredients-to-card` |
 
 ## Terminology
 
@@ -83,6 +87,7 @@ unlisted claim remains.
 
 ## Flags
 
-None. The review-three subjective outcomes, browser-storage jargon, local-file
-jargon, decorative serial labels, slogan headings, and blueprint-metaphor 404
-wording are absent.
+None. The review-four unsupported Terms scope promise is removed. The
+review-three subjective outcomes, browser-storage jargon, local-file jargon,
+decorative serial labels, slogan headings, and blueprint-metaphor 404 wording
+are absent.

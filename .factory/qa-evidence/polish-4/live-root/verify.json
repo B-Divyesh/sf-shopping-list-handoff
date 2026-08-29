@@ -1,0 +1,14 @@
+{
+  "url": "https://shopping-list-handoff.sociobot.in/",
+  "loadMs": 787,
+  "errors": [],
+  "a11y": {
+    "title": "Shopping List Handoff — Hand off a shopping list",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1250
+  }
+}

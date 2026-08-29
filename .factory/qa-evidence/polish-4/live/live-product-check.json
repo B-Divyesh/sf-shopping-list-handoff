@@ -1,0 +1,113 @@
+{
+  "origin": "https://shopping-list-handoff.sociobot.in",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "title": "Shopping List Handoff — Hand off a shopping list",
+      "canonical": "https://shopping-list-handoff.sociobot.in/",
+      "h1": 1,
+      "main": 1,
+      "errors": [],
+      "seriousOrCriticalAxe": []
+    },
+    {
+      "path": "/demo",
+      "status": 200,
+      "title": "Demo — Shopping List Handoff",
+      "canonical": "https://shopping-list-handoff.sociobot.in/demo",
+      "h1": 1,
+      "main": 1,
+      "errors": [],
+      "seriousOrCriticalAxe": []
+    },
+    {
+      "path": "/?demo=1",
+      "status": 200,
+      "title": "Demo — Shopping List Handoff",
+      "canonical": "https://shopping-list-handoff.sociobot.in/demo",
+      "h1": 1,
+      "main": 1,
+      "errors": [],
+      "seriousOrCriticalAxe": []
+    },
+    {
+      "path": "/privacy",
+      "status": 200,
+      "title": "Privacy — Shopping List Handoff",
+      "canonical": "https://shopping-list-handoff.sociobot.in/privacy",
+      "h1": 1,
+      "main": 1,
+      "errors": [],
+      "seriousOrCriticalAxe": []
+    },
+    {
+      "path": "/terms",
+      "status": 200,
+      "title": "Terms — Shopping List Handoff",
+      "canonical": "https://shopping-list-handoff.sociobot.in/terms",
+      "h1": 1,
+      "main": 1,
+      "errors": [],
+      "seriousOrCriticalAxe": []
+    },
+    {
+      "path": "/handoff#list=not-valid-data",
+      "status": 200,
+      "title": "Shared list — Shopping List Handoff",
+      "canonical": "https://shopping-list-handoff.sociobot.in/handoff",
+      "h1": 1,
+      "main": 1,
+      "errors": [],
+      "seriousOrCriticalAxe": []
+    },
+    {
+      "path": "/missing-polish-4",
+      "status": 404,
+      "title": "Page not found — Shopping List Handoff",
+      "canonical": "https://shopping-list-handoff.sociobot.in/404",
+      "h1": 1,
+      "main": 1,
+      "errors": [],
+      "seriousOrCriticalAxe": []
+    }
+  ],
+  "demo": {
+    "directDemoKeys": [
+      "slh:demo:list"
+    ],
+    "recipientStorage": [],
+    "recipientRequests": [
+      "https://shopping-list-handoff.sociobot.in/handoff",
+      "https://shopping-list-handoff.sociobot.in/assets/index-D77_2cJg.js",
+      "https://shopping-list-handoff.sociobot.in/assets/index-CAnhpgiv.css"
+    ],
+    "requests": [
+      {
+        "url": "https://shopping-list-handoff.sociobot.in/?demo=1",
+        "method": "GET",
+        "body": null
+      },
+      {
+        "url": "https://shopping-list-handoff.sociobot.in/assets/index-D77_2cJg.js",
+        "method": "GET",
+        "body": null
+      },
+      {
+        "url": "https://shopping-list-handoff.sociobot.in/assets/index-CAnhpgiv.css",
+        "method": "GET",
+        "body": null
+      },
+      {
+        "url": "https://shopping-list-handoff.sociobot.in/assets/blueprint-handoff.webp",
+        "method": "GET",
+        "body": null
+      }
+    ]
+  },
+  "privacy": {
+    "termsRemovedScopePromise": true,
+    "sameOriginNoWriteRequests": true
+  },
+  "errors": []
+}
