@@ -138,6 +138,14 @@ test('routes set their own title, canonical URL, and share metadata', async ({ p
   }
 });
 
+test('terms use bounded legal copy without unlisted system-behavior promises', async ({ page }) => {
+  await page.goto('/terms');
+  await expect(page.getByRole('heading', { name: 'Terms for Shopping List Handoff' })).toBeVisible();
+  await expect(page.getByText('Shopping List Handoff is free to use. Use it for ordinary shopping information and check the final list before sharing it.')).toBeVisible();
+  await expect(page.getByText('The software is provided as-is, without warranties.')).toBeVisible();
+  await expect(page.getByText(/place orders|contact retailers|live collaboration/i)).toHaveCount(0);
+});
+
 test('QR opens a recipient list and excludes private fields @claim:qr-recipient @claim:qr-private', async ({ page, browser }) => {
   await page.goto('/demo');
   await page.getByLabel('List title').fill('Home address: 123 Oak Street');

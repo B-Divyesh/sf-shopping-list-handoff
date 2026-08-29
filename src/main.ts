@@ -214,7 +214,7 @@ function legal(kind: 'privacy' | 'terms') {
   const title = kind === 'privacy' ? 'How Shopping List Handoff stores data' : 'Terms for Shopping List Handoff';
   const paragraphs = kind === 'privacy'
     ? ['Shopping List Handoff stores your list in this browser only. It does not send ingredient lists, notes, or device identifiers to a server.', 'A QR code embeds a compact list of item names, quantities, and units. It never includes your note. Anyone who scans the code can read those list items.', 'You can clear browser storage in your browser settings or use Clear list. Demo data is stored separately from real lists and is discarded when you reset it.']
-    : ['Shopping List Handoff is free to use. Use it for ordinary shopping information and check the final list before sharing it.', 'The tool does not place orders, contact retailers, or provide live collaboration. A saved file and a QR code are copies you choose to share.', 'The software is provided as-is, without warranties.'];
+    : ['Shopping List Handoff is free to use. Use it for ordinary shopping information and check the final list before sharing it.', 'The software is provided as-is, without warranties.'];
   return `<main id="main" tabindex="-1" class="legal"><h1 id="page-title" tabindex="-1">${title}</h1>${paragraphs.map(p => `<p>${p}</p>`).join('')}<p><a href="/" data-route>Return to your list</a></p></main>`;
 }
 type RouteMetadata = { title: string; description: string };

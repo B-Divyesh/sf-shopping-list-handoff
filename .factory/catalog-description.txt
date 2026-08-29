@@ -1,1 +1,1 @@
-Hand off pasted ingredients as a checkable shopping list for another shopper.
+Turn pasted ingredients into a handoff card.
